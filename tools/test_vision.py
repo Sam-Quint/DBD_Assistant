@@ -44,10 +44,10 @@ def draw_debug_panel(frame: np.ndarray, debug_list: list) -> np.ndarray:
         color = STATE_COLORS.get(state, (200, 200, 200))
 
         lines = [
-            f"S{i+1}: {state.upper()}  conf={info.get('confidence', 0):.2f}",
-            f"  ring={info.get('ring_color','?')}  HSV=({info.get('ring_hsv',(0,0,0))[0]:.0f},{info.get('ring_hsv',(0,0,0))[1]:.0f},{info.get('ring_hsv',(0,0,0))[2]:.0f})",
+            f"S{i+1}: {state.upper()}",
+            f"  ring={info.get('ring_color','?')}  sat={info.get('mean_sat',0):.0f}  val={info.get('mean_val',0):.0f}",
             f"  scratches={info.get('has_scratches','?')}  yellow={info.get('has_yellow_bar','?')}",
-            f"  icon={info.get('icon_state','none')}({info.get('icon_score',0):.2f})  hooks={info.get('hook_bars',0)}",
+            f"  icon={info.get('icon_state','none')}  hooks={info.get('hook_bars',0)}",
         ]
         for j, line in enumerate(lines):
             cv2.putText(panel, line, (4, y_base + j * 14),
@@ -66,9 +66,6 @@ def draw_debug_panel(frame: np.ndarray, debug_list: list) -> np.ndarray:
 def main():
     cap = ScreenCapture()
     vision = VisionAnalyzer()
-
-    if not vision.icon_templates:
-        print("Aucun template d'icône chargé — seuls les états HSV seront détectés.")
 
     print("Vision debug en temps réel. Appuie sur Q pour quitter.")
     fps_times = []
