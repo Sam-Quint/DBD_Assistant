@@ -17,28 +17,35 @@ echo  ╔═══════════════════════�
 echo  ║     Assistant DBD — Calibration      ║
 echo  ╚══════════════════════════════════════╝
 echo.
-echo  1  Tester la capture ROI
-echo       ^> Vérifie que les portraits sont bien encadrés
+echo  1  Calibrer la zone des portraits  ^<^<^< COMMENCER PAR LA
+echo       ^> Clique-glisse pour encadrer les 4 portraits
 echo.
-echo  2  Capturer les icônes d'état
+echo  2  Verifier la capture ROI
+echo       ^> Controle que les rectangles sont bien places
+echo.
+echo  3  Capturer les icones d'etat
 echo       ^> Sauvegarde les templates (downed/carried/hooked...)
 echo.
-echo  3  Tester la détection vision
-echo       ^> Affiche l'état détecté en temps réel + valeurs HSV
+echo  4  Tester la detection vision
+echo       ^> Affiche l'etat detecte en temps reel + valeurs HSV
 echo.
 echo  Q  Quitter
 echo.
 set /p choix=Choix :
 
 if /i "%choix%"=="1" (
-    python\python.exe tools\test_capture.py
+    python\python.exe tools\calibrer_roi.py
     goto :menu
 )
 if /i "%choix%"=="2" (
-    python\python.exe tools\capture_icon.py
+    python\python.exe tools\test_capture.py
     goto :menu
 )
 if /i "%choix%"=="3" (
+    python\python.exe tools\capture_icon.py
+    goto :menu
+)
+if /i "%choix%"=="4" (
     python\python.exe tools\test_vision.py
     goto :menu
 )

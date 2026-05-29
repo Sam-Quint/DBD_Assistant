@@ -1,11 +1,19 @@
-RESOLUTION = (1920, 1080)
+import json
+import os
 
-PORTRAITS_ROI = {
-    "x": 60,
-    "y": 330,
-    "w": 220,
-    "h": 280
-}
+# Valeurs par défaut (1920x1080 fullscreen)
+_DEFAULT_ROI = {"x": 60, "y": 330, "w": 220, "h": 280}
+
+# Chargement depuis calibration.json si présent
+_CALIB_PATH = os.path.join(os.path.dirname(__file__), "calibration.json")
+if os.path.exists(_CALIB_PATH):
+    with open(_CALIB_PATH) as _f:
+        _calib = json.load(_f)
+    PORTRAITS_ROI = _calib.get("portraits_roi", _DEFAULT_ROI)
+else:
+    PORTRAITS_ROI = _DEFAULT_ROI
+
+RESOLUTION = (1920, 1080)
 
 # Position de chaque portrait dans la ROI (relatif à la ROI)
 PORTRAIT_POSITIONS = [
@@ -24,9 +32,8 @@ TIMER_DECISIVE_STRIKE = 60
 TIMER_FARDEAU = 40
 TIMER_WIGGLE = 16
 TIMER_WIGGLE_BONUS = 4
-TIMER_DEEP_WOUNDS_WINDOW = 15  # fenêtre post-décrochage
+TIMER_DEEP_WOUNDS_WINDOW = 15
 
-# Coup Décisif : fenêtre de détection décrochage rapide
 UNHOOK_DETECTION_WINDOW = 1.0
 
 # Touches clavier AZERTY
@@ -34,7 +41,6 @@ KEY_CANCEL = "²"
 KEY_SELECT = ["&", "é", '"', "'"]
 KEY_PERKS  = ["(", "-", "è", "_", "ç", "à"]
 
-# Noms des perks manuelles (V.2.0)
 MANUAL_PERK_NAMES = [
     "Souplesse",
     "Finesse",
