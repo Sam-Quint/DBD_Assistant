@@ -1,6 +1,6 @@
 # DBD Assistant
 
-Overlay pour Dead by Daylight (côté Tueur). Détecte automatiquement les perks des survivants et affiche des timers en temps réel par-dessus le jeu.
+Overlay pour Dead by Daylight (côté Tueur). Détecte automatiquement les états et perks des survivants et affiche des timers en temps réel par-dessus le jeu.
 
 ---
 
@@ -22,29 +22,16 @@ Il télécharge automatiquement Python portable et installe toutes les librairie
 
 ## Calibration (une seule fois, en jeu)
 
-Double-clique sur **`calibrer.bat`**, puis suis les étapes dans l'ordre :
+Double-clique sur **`calibrer.bat`**, puis :
 
-**Étape 1 — Tester la capture ROI**
+**Étape 1 — Calibrer la zone des portraits**
 Lance le jeu, reviens sur le menu de calibration et choisis l'option 1.
-Une fenêtre s'ouvre avec la zone capturée en temps réel. Les rectangles verts doivent encadrer les 4 portraits des survivants.
-Si ce n'est pas le cas, ajuste `PORTRAITS_ROI` et `PORTRAIT_POSITIONS` dans `config.py`.
+- Si tu as plusieurs écrans, choisis celui qui affiche le jeu
+- Clique-glisse pour encadrer la zone des 4 portraits (haut gauche du jeu)
+- Appuie sur `ENTRÉE` pour sauvegarder
 
-**Étape 2 — Capturer les icônes d'état**
-Choisis l'option 2. En jeu, mets chaque survivant dans un état différent et appuie sur la touche correspondante pour sauvegarder le template :
-
-| Touche | État |
-|--------|------|
-| `D` | À terre |
-| `C` | Porté |
-| `H` | Accroché |
-| `X` | Mort |
-| `E` | Sorti |
-| `Z` | Déconnecté |
-
-Utilise `1` `2` `3` `4` pour choisir quel portrait capturer.
-
-**Étape 3 — Vérifier la détection**
-Choisis l'option 3. L'état détecté de chaque survivant s'affiche en temps réel avec les valeurs HSV. Vérifie que les états correspondent bien à ce que tu vois en jeu.
+**Étape 2 — Vérifier la détection**
+Choisis l'option 2. Les états détectés s'affichent en temps réel. La détection est entièrement automatique, aucune configuration supplémentaire n'est nécessaire.
 
 ---
 
@@ -52,7 +39,7 @@ Choisis l'option 3. L'état détecté de chaque survivant s'affiche en temps ré
 
 Double-clique sur **`start.bat`**.
 
-L'overlay apparaît en transparence par-dessus le jeu, en haut à droite des portraits.
+L'overlay apparaît en transparence par-dessus le jeu, à côté des portraits.
 
 ---
 
