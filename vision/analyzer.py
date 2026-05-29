@@ -43,21 +43,22 @@ class VisionAnalyzer:
         circle_mask = self._make_circle_mask(h, w)
         roi_masked = cv2.bitwise_and(roi, roi, mask=circle_mask)
 
-        # Signal 1 : anneau
-        ring_color = self._sample_ring_color(roi, h, w)
-        if ring_color == "dark":
-            snap.state = SurvivorState.DEAD
-            snap.hook_bars = self._count_white_bars(roi)
-            return snap
-
-        # Signal 2 : intérieur du cercle (états icône)
+        # Signal 1 : intérieur du cercle (états icône) — PRIORITÉ ABSOLUE
+        # Doit être testé AVANT ring=dark car carried/hooked/downed ont aussi un anneau sombre
         icon_state = self._detect_icon_state(roi_masked, circle_mask, h, w)
         if icon_state:
             snap.state = icon_state
             snap.hook_bars = self._count_white_bars(roi)
             return snap
 
-        # Signal 3 : barre jaune (Deep Wounds)
+        # Signal 2 : anneau — seulement si pas d'icône détectée
+        ring_color = self._sample_ring_color(roi, h, w)
+        if ring_color == "dark":
+            snap.state = SurvivorState.DEAD
+            snap.hook_bars = self._count_white_bars(roi)
+            return snap
+
+        # Signal 3 : cyan ou barre jaune → Deep Wounds
         has_yellow_bar = self._detect_yellow_bar(roi)
         snap.has_yellow_bar = has_yellow_bar
         if ring_color == "cyan" or has_yellow_bar:
@@ -65,7 +66,7 @@ class VisionAnalyzer:
             snap.hook_bars = self._count_white_bars(roi)
             return snap
 
-        # Signal 4 : griffures rouges
+        # Signal 4 : griffures rouges → blessé vs bonne santé
         snap.state = SurvivorState.INJURED if self._detect_red_scratches(roi_masked) else SurvivorState.HEALTHY
         snap.hook_bars = self._count_white_bars(roi)
         return snap
@@ -76,9 +77,12 @@ class VisionAnalyzer:
         """
         Détecte Porté / Accroché / À terre / Sorti sans template.
 
-        Un portrait normal (visage) a saturation et luminosité élevées.
-        Un état icône a un fond noir avec une silhouette claire dessus.
-        On distingue ensuite les états par la forme géométrique de l'icône.
+        Principe : un portrait normal (visage) a beaucoup de pixels colorés et lumineux
+        répartis partout. Une icône d'état a un fond quasi-noir avec une silhouette
+        blanche/claire concentrée au centre.
+
+        On détecte d'abord si c'est une icône (fond sombre dominant),
+        puis on identifie laquelle par géométrie.
         """
         hsv = cv2.cvtColor(roi_masked, cv2.COLOR_BGR2HSV)
         circle_px = hsv[circle_mask == 255]
@@ -88,8 +92,11 @@ class VisionAnalyzer:
         mean_sat = float(np.mean(circle_px[:, 1]))
         mean_val = float(np.mean(circle_px[:, 2]))
 
-        # Portrait normal → pas un état icône
-        if mean_val > 95 and mean_sat > 28:
+        # Portrait normal : lumineux ET coloré (visage, cheveux, vêtements)
+        # Seuils abaissés pour être robuste sur les maps sombres
+        # mean_val > 80 : au moins modérément lumineux
+        # mean_sat > 20 : présence de couleur (peau, vêtements)
+        if mean_val > 80 and mean_sat > 20:
             return None
 
         # Sorti : teinte verte dominante (icône de porte)
@@ -98,25 +105,31 @@ class VisionAnalyzer:
         if green_ratio > 0.12:
             return SurvivorState.ESCAPED
 
-        # Isoler les pixels de l'icône (clairs sur fond sombre)
-        icon_mask = cv2.inRange(hsv, np.array([0, 0, 100]), np.array([180, 80, 255]))
+        # Isoler les pixels de l'icône : clairs (V>100) et peu saturés (S<90)
+        # = silhouette blanche/grise sur fond noir
+        icon_mask = cv2.inRange(hsv, np.array([0, 0, 100]), np.array([180, 90, 255]))
         icon_mask = cv2.bitwise_and(icon_mask, circle_mask)
         icon_px = np.where(icon_mask > 0)
         n = len(icon_px[0])
 
+        # Trop peu de pixels icône → probablement carried (silhouette quasi invisible)
         if n < 12:
-            return SurvivorState.CARRIED  # silhouette presque invisible
+            return SurvivorState.CARRIED
 
         rows, cols = icon_px
         row_spread = int(np.max(rows)) - int(np.min(rows))
         col_spread = int(np.max(cols)) - int(np.min(cols))
-        aspect = col_spread / max(row_spread, 1)       # >1 = large, <1 = haut
-        centroid_y = float(np.mean(rows)) / h          # 0 = haut, 1 = bas
+        aspect = col_spread / max(row_spread, 1)   # >1 = large, <1 = haut
+        centroid_y = float(np.mean(rows)) / h      # 0 = haut, 1 = bas
 
-        if aspect > 1.35:                              # icône horizontale → À terre
+        # À terre : silhouette horizontale (largeur >> hauteur)
+        if aspect > 1.35:
             return SurvivorState.DOWNED
-        if aspect < 0.85 and centroid_y < 0.55:       # icône verticale en haut → Accroché
+
+        # Accroché : silhouette verticale concentrée en haut du cercle
+        if aspect < 0.85 and centroid_y < 0.55:
             return SurvivorState.HOOKED
+
         return SurvivorState.CARRIED
 
     # ── Signaux HSV ───────────────────────────────────────────────────────────
@@ -150,10 +163,16 @@ class VisionAnalyzer:
         mean_s = float(np.mean(px[:, 1]))
         mean_v = float(np.mean(px[:, 2]))
 
-        if mean_v < 50:
+        # Seuil dark plus strict : V très bas ET peu saturé
+        # Évite les faux positifs sur maps sombres avec des survivants vivants
+        if mean_v < 35 and mean_s < 60:
             return "dark"
-        if 85 <= mean_h <= 100 and mean_s > 100:
+
+        # Seuil cyan plus strict : plage H resserrée + saturation élevée
+        # Évite les faux positifs sur fonds orangés/chauds
+        if 88 <= mean_h <= 105 and mean_s > 130 and mean_v > 60:
             return "cyan"
+
         return "white"
 
     def _detect_red_scratches(self, roi_masked: np.ndarray) -> bool:

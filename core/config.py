@@ -55,3 +55,4 @@ MANUAL_PERK_NAMES = [
     "Champion de la Lumière",
     "Pièges Chimiques",
 ]
+
