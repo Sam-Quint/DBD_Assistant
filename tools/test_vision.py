@@ -3,16 +3,15 @@ Outil de debug vision.
 Affiche en temps réel l'état détecté de chaque portrait avec les signaux HSV.
 Appuie sur Q pour quitter.
 """
-import sys
-import os
+import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import cv2
 import numpy as np
 import time
-from capture import ScreenCapture
-from vision import VisionAnalyzer
-from config import PORTRAIT_POSITIONS
+from vision.capture import ScreenCapture
+from vision.analyzer import VisionAnalyzer
+from core.config import PORTRAIT_POSITIONS
 
 STATE_COLORS = {
     "healthy":      (200, 255, 200),
@@ -33,8 +32,7 @@ def draw_debug_panel(frame: np.ndarray, debug_list: list) -> np.ndarray:
     scale = 3
     display = cv2.resize(frame, (roi_w * scale, roi_h * scale), interpolation=cv2.INTER_NEAREST)
 
-    panel_w = 380
-    panel = np.zeros((roi_h * scale, panel_w, 3), dtype=np.uint8)
+    panel = np.zeros((roi_h * scale, 380, 3), dtype=np.uint8)
 
     for i, info in enumerate(debug_list):
         if not info:
@@ -57,8 +55,7 @@ def draw_debug_panel(frame: np.ndarray, debug_list: list) -> np.ndarray:
         x1, y1 = pos["x"] * scale, pos["y"] * scale
         x2, y2 = x1 + pos["w"] * scale, y1 + pos["h"] * scale
         state = debug_list[i].get("state", "") if debug_list[i] else ""
-        color = STATE_COLORS.get(state, (200, 200, 200))
-        cv2.rectangle(display, (x1, y1), (x2, y2), color, 2)
+        cv2.rectangle(display, (x1, y1), (x2, y2), STATE_COLORS.get(state, (200, 200, 200)), 2)
 
     return np.hstack([display, panel])
 
@@ -66,8 +63,7 @@ def draw_debug_panel(frame: np.ndarray, debug_list: list) -> np.ndarray:
 def main():
     cap = ScreenCapture()
     vision = VisionAnalyzer()
-
-    print("Vision debug en temps réel. Appuie sur Q pour quitter.")
+    print("Vision debug en temps réel. Q pour quitter.")
     fps_times = []
 
     while True:

@@ -3,18 +3,17 @@ Outil de calibration ROI.
 Affiche en temps réel la zone capturée avec les rectangles des portraits.
 Appuie sur Q pour quitter.
 """
-import sys
-import os
+import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import cv2
-from capture import ScreenCapture
-from config import PORTRAIT_POSITIONS
+from vision.capture import ScreenCapture
+from core.config import PORTRAIT_POSITIONS
 
 
 def main():
     cap = ScreenCapture()
-    print("Affichage de la ROI en temps réel. Appuie sur Q pour quitter.")
+    print("Affichage de la ROI en temps réel. Q pour quitter.")
 
     while True:
         frame = cap.capture_raw()
