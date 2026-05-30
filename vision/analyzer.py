@@ -89,8 +89,8 @@ class VisionAnalyzer:
 
         h, w = roi.shape[:2]
 
-        # Zone centrale 50% du portrait (là où se trouvent les icônes d'état)
-        center_roi = roi[h//4 : 3*h//4, w//4 : 3*w//4]
+        # 80% du portrait (marge 10% pour exclure le bord de l'anneau)
+        center_roi = roi[h//10 : 9*h//10, w//10 : 9*w//10]
 
         # ── Étape 1 : template matching sur la zone centrale ──────────────────
         icon_state, score = self._match_icon(center_roi)
@@ -197,7 +197,7 @@ class VisionAnalyzer:
                 continue
 
             h, w        = roi.shape[:2]
-            center_roi  = roi[h//4:3*h//4, w//4:3*w//4]
+            center_roi  = roi[h//10:9*h//10, w//10:9*w//10]
             circle_mask = self._make_circle_mask(h, w)
             roi_masked  = cv2.bitwise_and(roi, roi, mask=circle_mask)
 

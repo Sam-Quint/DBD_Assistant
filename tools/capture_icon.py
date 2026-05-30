@@ -22,7 +22,7 @@ from vision.capture import ScreenCapture
 from core.config import PORTRAIT_POSITIONS
 
 ICONS_DIR     = os.path.join(os.path.dirname(__file__), "..", "assets", "icons")
-TEMPLATE_SIZE = 32  # taille de stockage des templates (32×32 px)
+TEMPLATE_SIZE = 48  # taille de stockage des templates (48×48 px)
 SCALE         = 4   # facteur d'agrandissement de l'affichage
 
 STATE_KEYS = {
@@ -45,9 +45,9 @@ STATE_COLORS = {
 
 
 def _center_roi(portrait: np.ndarray) -> np.ndarray:
-    """Extrait la zone centrale 50% du portrait (là où se trouvent les icônes)."""
+    """Extrait 80% du portrait (marge de 10% de chaque côté pour exclure le bord de l'anneau)."""
     h, w = portrait.shape[:2]
-    return portrait[h//4 : 3*h//4, w//4 : 3*w//4]
+    return portrait[h//10 : 9*h//10, w//10 : 9*w//10]
 
 
 def _count_templates() -> dict[str, int]:
@@ -87,9 +87,9 @@ def _build_display(frame: np.ndarray, selected: int, chosen_state: str | None) -
         h, w     = portrait.shape[:2]
         big      = cv2.resize(portrait, (w * SCALE, h * SCALE), interpolation=cv2.INTER_NEAREST)
 
-        # Rectangle jaune sur la zone centrale (là qui sera capturée)
-        cx1, cy1 = w*SCALE//4, h*SCALE//4
-        cx2, cy2 = 3*w*SCALE//4, 3*h*SCALE//4
+        # Rectangle jaune sur la zone capturée (80% du portrait, marge 10%)
+        cx1, cy1 = w*SCALE//10, h*SCALE//10
+        cx2, cy2 = 9*w*SCALE//10, 9*h*SCALE//10
         cv2.rectangle(big, (cx1, cy1), (cx2, cy2), (0, 220, 220), 1)
 
         # Bordure colorée sur le survivant sélectionné

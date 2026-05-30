@@ -90,15 +90,15 @@ Actuellement il n'y a pas de détection de début de nouvelle partie. Si l'utili
 
 ## État actuel : ce qui fonctionne, ce qui reste à valider
 
-| Composant | État |
-|-----------|------|
-| `setup.bat` / `start.bat` / `calibrer.bat` | ✅ Fonctionnel |
-| Calibration ROI multi-écrans | ✅ Fonctionnel |
-| Capture d'écran (mss) | ✅ Fonctionnel |
-| Détection healthy / injured / deep_wounds | ✅ Implémenté, à valider en jeu |
+| Composant                                            | État                                                     |
+| ---------------------------------------------------- | -------------------------------------------------------- |
+| `setup.bat` / `start.bat` / `calibrer.bat`           | ✅ Fonctionnel                                            |
+| Calibration ROI multi-écrans                         | ✅ Fonctionnel                                            |
+| Capture d'écran (mss)                                | ✅ Fonctionnel                                            |
+| Détection healthy / injured / deep_wounds            | ✅ Implémenté, à valider en jeu                           |
 | Détection downed / carried / hooked / dead / escaped | ⏳ Implémenté, **nécessite capture des templates en jeu** |
-| Timers Coup Décisif, Fardeau, Wiggle, DW window | ✅ Implémenté, à valider en jeu |
-| Overlay tkinter | ✅ Implémenté, à valider en jeu |
-| Perks manuelles (affichage) | ✅ Fonctionnel |
-| Reset automatique de partie | ❌ Non implémenté |
-| Dead Hard automatique | ❌ Non implémenté (V.3.0) |
+| Timers Coup Décisif, Fardeau, Wiggle, DW window      | ✅ Implémenté, à valider en jeu                           |
+| Overlay tkinter                                      | ✅ Implémenté, à valider en jeu                           |
+| Perks manuelles (affichage)                          | ✅ Fonctionnel                                            |
+| Reset automatique de partie                          | ❌ Non implémenté                                         |
+| Dead Hard automatique                                | ❌ Non implémenté (V.3.0)                                 |
