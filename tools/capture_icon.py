@@ -3,11 +3,11 @@ Outil de capture de templates pendant une vraie partie.
 
 Touches :
   1 2 3 4       Sélectionner le survivant à capturer
-  D             État : À terre  (downed)
-  C             État : Porté    (carried)
-  H             État : Accroché (hooked)
-  X             État : Mort     (dead)
-  E             État : Sorti    (escaped)
+  W             État : À terre  (downed)
+  X             État : Porté    (carried)
+  C             État : Accroché (hooked)
+  V             État : Mort     (dead)
+  B             État : Sorti    (escaped)
   ENTRÉE        Sauvegarder le template du survivant sélectionné dans l'état choisi
   R             Recharger les templates dans l'analyseur (après plusieurs captures)
   Q             Quitter
@@ -26,11 +26,11 @@ TEMPLATE_SIZE = 48  # taille de stockage des templates (48×48 px)
 SCALE         = 4   # facteur d'agrandissement de l'affichage
 
 STATE_KEYS = {
-    ord("d"): "downed",
-    ord("c"): "carried",
-    ord("h"): "hooked",
-    ord("x"): "dead",
-    ord("e"): "escaped",
+    ord("w"): "downed",
+    ord("x"): "carried",
+    ord("c"): "hooked",
+    ord("v"): "dead",
+    ord("b"): "escaped",
 }
 
 # Couleurs BGR par état pour l'interface
@@ -114,7 +114,7 @@ def _build_display(frame: np.ndarray, selected: int, chosen_state: str | None) -
 
     line1 = f"Survivant : S{selected+1}   Etat : {chosen_state.upper() if chosen_state else 'NON CHOISI'}"
     line2 = "Templates : " + "  ".join(f"{s}={n}" for s, n in counts.items())
-    line3 = "1/2/3/4=select | D=downed  C=carried  H=hooked  X=dead  E=escaped | ENTREE=save | R=reload | Q=quit"
+    line3 = "1/2/3/4=select | W=downed  X=carried  C=hooked  V=dead  B=escaped | ENTREE=save | R=reload | Q=quit"
 
     cv2.putText(info, line1, (6, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 1)
     cv2.putText(info, line2, (6, 45), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (160, 160, 160), 1)
