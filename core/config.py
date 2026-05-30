@@ -29,8 +29,6 @@ PORTRAIT_POSITIONS = [
 # Nombre de captures analysées par seconde
 CAPTURE_FPS = 10
 
-TEMPLATE_THRESHOLD = 0.80
-
 # Durées des timers (secondes)
 TIMER_DECISIVE_STRIKE    = 60
 TIMER_FARDEAU            = 40

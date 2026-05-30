@@ -20,8 +20,11 @@ echo.
 echo  1  Calibrer la zone des portraits  ^<^<^< COMMENCER PAR LA
 echo       ^> Clique-glisse pour encadrer les 4 portraits
 echo.
-echo  2  Tester la detection en temps reel
-echo       ^> Verifie que les etats sont bien detectes
+echo  2  Capturer les templates d'icones  ^<^<^< FAIRE EN JEU
+echo       ^> Sauvegarde les icones d'etat pour le matching
+echo.
+echo  3  Tester la detection en temps reel
+echo       ^> Verifie les etats detectes et les scores de matching
 echo.
 echo  Q  Quitter
 echo.
@@ -32,6 +35,10 @@ if /i "%choix%"=="1" (
     goto :menu
 )
 if /i "%choix%"=="2" (
+    python\python.exe tools\capture_icon.py
+    goto :menu
+)
+if /i "%choix%"=="3" (
     python\python.exe tools\test_vision.py
     goto :menu
 )

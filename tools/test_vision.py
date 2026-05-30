@@ -43,9 +43,9 @@ def draw_debug_panel(frame: np.ndarray, debug_list: list) -> np.ndarray:
 
         lines = [
             f"S{i+1}: {state.upper()}",
-            f"  ring={info.get('ring_color','?')}  sat={info.get('mean_sat',0):.0f}  val={info.get('mean_val',0):.0f}",
+            f"  match={info.get('icon_match','none')}  score={info.get('icon_score',0):.3f}",
             f"  scratches={info.get('has_scratches','?')}  yellow={info.get('has_yellow_bar','?')}",
-            f"  icon={info.get('icon_state','none')}  hooks={info.get('hook_bars',0)}",
+            f"  hooks={info.get('hook_bars',0)}",
         ]
         for j, line in enumerate(lines):
             cv2.putText(panel, line, (4, y_base + j * 14),
