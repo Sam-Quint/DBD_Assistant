@@ -28,11 +28,8 @@ class VisionAnalyzer:
 
     Pipeline de détection :
       1. Template matching (niveaux de gris) sur la zone centrale du portrait
-         → match trouvé au-dessus du seuil → état icône (downed/carried/hooked/dead/escaped)
-      2. Sinon → portrait vivant :
-         → barre jaune (tiers bas)           → DEEP_WOUNDS
-         → griffures rouges (HSV rouge)      → INJURED
-         → sinon                             → HEALTHY
+         → match trouvé au-dessus du seuil → état retenu
+      2. Sinon → HEALTHY par défaut
 
     Les templates sont chargés depuis assets/icons/{état}/*.png au démarrage.
     Plusieurs templates par état sont supportés (score max retenu).
@@ -88,30 +85,11 @@ class VisionAnalyzer:
             return snap
 
         h, w = roi.shape[:2]
-
-        # 80% du portrait (marge 10% pour exclure le bord de l'anneau)
         center_roi = roi[h//10 : 9*h//10, w//10 : 9*w//10]
 
-        # ── Étape 1 : template matching sur la zone centrale ──────────────────
-        icon_state, score = self._match_icon(center_roi)
+        icon_state, _ = self._match_icon(center_roi)
         if icon_state:
-            snap.state     = icon_state
-            snap.hook_bars = self._count_white_bars(roi)
-            return snap
-
-        # ── Étape 2 : portrait vivant → signaux HSV ───────────────────────────
-        circle_mask = self._make_circle_mask(h, w)
-        roi_masked  = cv2.bitwise_and(roi, roi, mask=circle_mask)
-
-        has_yellow = self._detect_yellow_bar(roi)
-        snap.has_yellow_bar = has_yellow
-
-        if has_yellow:
-            snap.state = SurvivorState.DEEP_WOUNDS
-        elif self._detect_red_scratches(roi_masked):
-            snap.state = SurvivorState.INJURED
-        else:
-            snap.state = SurvivorState.HEALTHY
+            snap.state = icon_state
 
         snap.hook_bars = self._count_white_bars(roi)
         return snap
