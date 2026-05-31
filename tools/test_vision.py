@@ -1,6 +1,6 @@
 """
 Outil de debug vision.
-Affiche en temps réel l'état détecté de chaque portrait avec les signaux HSV.
+Affiche en temps réel l'état détecté de chaque portrait avec les scores de matching.
 Appuie sur Q pour quitter.
 """
 import sys, os
@@ -29,22 +29,20 @@ STATE_COLORS = {
 
 def draw_debug_panel(frame: np.ndarray, debug_list: list) -> np.ndarray:
     roi_h, roi_w = frame.shape[:2]
-    scale = 3
+    scale   = 3
     display = cv2.resize(frame, (roi_w * scale, roi_h * scale), interpolation=cv2.INTER_NEAREST)
-
-    panel = np.zeros((roi_h * scale, 380, 3), dtype=np.uint8)
+    panel   = np.zeros((roi_h * scale, 320, 3), dtype=np.uint8)
 
     for i, info in enumerate(debug_list):
         if not info:
             continue
         y_base = i * (roi_h * scale // 4) + 10
-        state = info.get("state", "?")
-        color = STATE_COLORS.get(state, (200, 200, 200))
+        state  = info.get("state", "?")
+        color  = STATE_COLORS.get(state, (200, 200, 200))
 
         lines = [
             f"S{i+1}: {state.upper()}",
             f"  match={info.get('icon_match','none')}  score={info.get('icon_score',0):.3f}",
-            f"  scratches={info.get('has_scratches','?')}  yellow={info.get('has_yellow_bar','?')}",
             f"  hooks={info.get('hook_bars',0)}",
         ]
         for j, line in enumerate(lines):
@@ -54,21 +52,21 @@ def draw_debug_panel(frame: np.ndarray, debug_list: list) -> np.ndarray:
     for i, pos in enumerate(PORTRAIT_POSITIONS):
         x1, y1 = pos["x"] * scale, pos["y"] * scale
         x2, y2 = x1 + pos["w"] * scale, y1 + pos["h"] * scale
-        state = debug_list[i].get("state", "") if debug_list[i] else ""
+        state  = debug_list[i].get("state", "") if debug_list[i] else ""
         cv2.rectangle(display, (x1, y1), (x2, y2), STATE_COLORS.get(state, (200, 200, 200)), 2)
 
     return np.hstack([display, panel])
 
 
 def main():
-    cap = ScreenCapture()
+    cap    = ScreenCapture()
     vision = VisionAnalyzer()
     print("Vision debug en temps réel. Q pour quitter.")
     fps_times = []
 
     while True:
-        t0 = time.time()
-        frame = cap.capture_raw()
+        t0         = time.time()
+        frame      = cap.capture_raw()
         debug_list = vision.get_debug_info(frame)
 
         fps_times.append(time.time() - t0)
