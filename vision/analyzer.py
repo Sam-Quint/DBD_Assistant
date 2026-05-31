@@ -1,8 +1,10 @@
 import os
 import cv2
 import numpy as np
+import joblib
 from core.config import PORTRAIT_POSITIONS, TEMPLATE_THRESHOLD
 from core.state import SurvivorState
+from vision.features import extract_hog
 
 # Taille à laquelle les templates sont stockés et comparés
 TEMPLATE_SIZE = 32
@@ -10,8 +12,11 @@ TEMPLATE_SIZE = 32
 # Chemin vers les templates (relatif à ce fichier : vision/../assets/icons/)
 _ICONS_DIR = os.path.join(os.path.dirname(__file__), "..", "assets", "icons")
 
-# États gérés par le template matching
-_ICON_STATES = ["healthy", "injured", "downed", "carried", "hooked", "dead", "escaped"]
+# États avec symboles distinctifs (template matching)
+_ICON_STATES = ["downed", "carried", "hooked", "dead", "escaped"]
+
+# Chemin du modèle SVM entraîné pour healthy/injured
+_CLASSIFIER_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "living_clf.joblib")
 
 
 class SurvivorSnapshot:
@@ -27,30 +32,25 @@ class VisionAnalyzer:
     Analyse les 4 portraits de survivants dans une frame capturée.
 
     Pipeline de détection :
-      1. Template matching (niveaux de gris) sur la zone centrale du portrait
-         → match trouvé au-dessus du seuil → état retenu
-      2. Sinon → HEALTHY par défaut
+      1. Template matching (niveaux de gris, zone centrale 80%) → états icônes
+      2. Classifieur SVM HOG (assets/living_clf.joblib)         → healthy / injured
+      3. Sinon → HEALTHY par défaut
 
-    Les templates sont chargés depuis assets/icons/{état}/*.png au démarrage.
-    Plusieurs templates par état sont supportés (score max retenu).
+    Templates chargés depuis assets/icons/{état}/*.png.
+    Modèle SVM entraîné via Entrainement/train_classifier.ipynb.
     """
 
     def __init__(self):
-        # Dictionnaire {état: [image_gris_32x32, ...]}
-        self._templates = self._load_templates()
-        loaded = {s: len(t) for s, t in self._templates.items()}
-        print(f"[VisionAnalyzer] Templates chargés : {loaded}")
+        self._icon_templates = self._load_templates(_ICON_STATES)
+        self._living_clf     = self._load_classifier()
+        print(f"[VisionAnalyzer] Icon templates : { {s: len(t) for s, t in self._icon_templates.items()} }")
+        print(f"[VisionAnalyzer] Living clf     : {'OK' if self._living_clf else 'absent (HEALTHY par défaut)'}")
 
     # ── Chargement des templates ──────────────────────────────────────────────
 
-    def _load_templates(self) -> dict[str, list[np.ndarray]]:
-        """
-        Charge tous les templates PNG depuis assets/icons/{état}/.
-        Convertit en niveaux de gris et stocke tel quel (le redimensionnement
-        se fait à la volée dans _match_icon pour s'adapter à la taille réelle).
-        """
+    def _load_templates(self, states: list[str]) -> dict[str, list[np.ndarray]]:
         templates = {}
-        for state in _ICON_STATES:
+        for state in states:
             state_dir = os.path.join(_ICONS_DIR, state)
             if not os.path.isdir(state_dir):
                 continue
@@ -65,8 +65,18 @@ class VisionAnalyzer:
         return templates
 
     def reload_templates(self):
-        """Recharge les templates depuis le disque (utile après une capture)."""
-        self._templates = self._load_templates()
+        """Recharge les templates et le classifieur depuis le disque."""
+        self._icon_templates = self._load_templates(_ICON_STATES)
+        self._living_clf     = self._load_classifier()
+
+    def _load_classifier(self):
+        """Charge le modèle SVM depuis assets/living_clf.joblib, ou None si absent."""
+        if os.path.exists(_CLASSIFIER_PATH):
+            try:
+                return joblib.load(_CLASSIFIER_PATH)
+            except Exception as e:
+                print(f"[VisionAnalyzer] Erreur chargement classifieur : {e}")
+        return None
 
     # ── Pipeline principal ────────────────────────────────────────────────────
 
@@ -87,42 +97,44 @@ class VisionAnalyzer:
         h, w = roi.shape[:2]
         center_roi = roi[h//10 : 9*h//10, w//10 : 9*w//10]
 
-        icon_state, _ = self._match_icon(center_roi)
+        # États icônes (symboles distinctifs, template matching)
+        icon_state, _ = self._match_templates(center_roi, self._icon_templates, TEMPLATE_THRESHOLD)
         if icon_state:
             snap.state = icon_state
+            snap.hook_bars = self._count_white_bars(roi)
+            return snap
+
+        # États vivants (SVM sur features HOG)
+        if self._living_clf:
+            features = extract_hog(center_roi)
+            pred     = self._living_clf["model"].predict([features])[0]
+            snap.state = self._living_clf["states"][pred]
 
         snap.hook_bars = self._count_white_bars(roi)
         return snap
 
     # ── Template matching ─────────────────────────────────────────────────────
 
-    def _match_icon(self, center_roi: np.ndarray) -> tuple[str | None, float]:
-        """
-        Template matching en niveaux de gris sur la zone centrale.
-
-        Pour chaque état, on teste tous ses templates et on garde le score max.
-        On retourne l'état avec le meilleur score global, si celui-ci dépasse
-        TEMPLATE_THRESHOLD. Sinon retourne (None, 0.0).
-        """
-        if not self._templates or center_roi.size == 0:
+    def _match_templates(self, roi: np.ndarray, templates: dict, threshold: float) -> tuple[str | None, float]:
+        """Retourne l'état avec le meilleur score parmi les templates donnés, ou (None, 0.0)."""
+        if not templates or roi.size == 0:
             return None, 0.0
 
-        gray = cv2.cvtColor(center_roi, cv2.COLOR_BGR2GRAY)
-        c_h, c_w = gray.shape[:2]
+        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        r_h, r_w = gray.shape[:2]
 
         best_state, best_score = None, 0.0
 
-        for state, tmpl_list in self._templates.items():
+        for state, tmpl_list in templates.items():
             for tmpl in tmpl_list:
-                # Redimensionner le template à la taille exacte de la zone centrale
-                t = cv2.resize(tmpl, (c_w, c_h)) if tmpl.shape != (c_h, c_w) else tmpl
+                t      = cv2.resize(tmpl, (r_w, r_h)) if tmpl.shape != (r_h, r_w) else tmpl
                 result = cv2.matchTemplate(gray, t, cv2.TM_CCOEFF_NORMED)
                 score  = float(np.max(result))
                 if score > best_score:
                     best_score = score
                     best_state = state
 
-        if best_score >= TEMPLATE_THRESHOLD:
+        if best_score >= threshold:
             return best_state, best_score
         return None, 0.0
 
@@ -179,7 +191,7 @@ class VisionAnalyzer:
             circle_mask = self._make_circle_mask(h, w)
             roi_masked  = cv2.bitwise_and(roi, roi, mask=circle_mask)
 
-            icon_state, icon_score = self._match_icon(center_roi)
+            icon_state, icon_score = self._match_templates(center_roi, self._icon_templates, TEMPLATE_THRESHOLD)
             snap = self._analyze_portrait(roi)
 
             debug_list.append({
