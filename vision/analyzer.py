@@ -148,6 +148,15 @@ class VisionAnalyzer:
             center_roi = roi[h//10:9*h//10, w//10:9*w//10]
 
             icon_state, icon_score = self._match_templates(center_roi, self._icon_templates, TEMPLATE_THRESHOLD)
+
+            clf_pred, clf_conf = None, 0.0
+            if self._living_clf:
+                features  = extract_hog(center_roi)
+                pred      = self._living_clf["model"].predict([features])[0]
+                proba     = self._living_clf["model"].predict_proba([features])[0]
+                clf_pred  = self._living_clf["states"][pred]
+                clf_conf  = round(float(max(proba)), 3)
+
             snap = self._analyze_portrait(roi)
 
             debug_list.append({
@@ -155,6 +164,8 @@ class VisionAnalyzer:
                 "state":      snap.state,
                 "icon_match": icon_state,
                 "icon_score": round(icon_score, 3),
+                "clf_pred":   clf_pred,
+                "clf_conf":   clf_conf,
                 "hook_bars":  snap.hook_bars,
             })
 
