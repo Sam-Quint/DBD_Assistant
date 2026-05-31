@@ -26,6 +26,9 @@ PORTRAIT_POSITIONS = [
     {"x": 24, "y": 290, "w": 60, "h": 60},   # Survivant 4
 ]
 
+# Score minimum pour qu'un template match soit retenu
+TEMPLATE_THRESHOLD = 0.80
+
 # Nombre de captures analysées par seconde
 CAPTURE_FPS = 10
 

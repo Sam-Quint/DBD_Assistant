@@ -40,6 +40,7 @@ if /i "%choix%"=="2" (
 )
 if /i "%choix%"=="3" (
     python\python.exe tools\test_vision.py
+    pause
     goto :menu
 )
 if /i "%choix%"=="q" exit /b 0
