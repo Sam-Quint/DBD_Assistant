@@ -20,10 +20,10 @@ RESOLUTION = (1920, 1080)
 
 # Coordonnées des 4 portraits dans la ROI (relatif au coin haut-gauche de PORTRAITS_ROI)
 PORTRAIT_POSITIONS = [
-    {"x": 24, "y": 24,  "w": 60, "h": 60},   # Survivant 1
-    {"x": 24, "y": 110, "w": 60, "h": 60},   # Survivant 2
-    {"x": 24, "y": 200, "w": 60, "h": 60},   # Survivant 3
-    {"x": 24, "y": 290, "w": 60, "h": 60},   # Survivant 4
+    {"x": 24, "y": 24,  "w": 115, "h": 60},   # Survivant 1
+    {"x": 24, "y": 110, "w": 115, "h": 60},   # Survivant 2
+    {"x": 24, "y": 200, "w": 115, "h": 60},   # Survivant 3
+    {"x": 24, "y": 290, "w": 115, "h": 60},   # Survivant 4
 ]
 
 # Score minimum pour qu'un template match soit retenu
