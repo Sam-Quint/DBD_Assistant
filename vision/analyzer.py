@@ -11,7 +11,7 @@ TEMPLATE_SIZE = 32
 _ICONS_DIR = os.path.join(os.path.dirname(__file__), "..", "assets", "icons")
 
 # États gérés par le template matching
-_ICON_STATES = ["downed", "carried", "hooked", "dead", "escaped"]
+_ICON_STATES = ["healthy", "injured", "downed", "carried", "hooked", "dead", "escaped"]
 
 
 class SurvivorSnapshot:

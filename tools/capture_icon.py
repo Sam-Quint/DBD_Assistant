@@ -3,11 +3,13 @@ Outil de capture de templates pendant une vraie partie.
 
 Touches :
   1 2 3 4       Sélectionner le survivant à capturer
-  W             État : À terre  (downed)
-  X             État : Porté    (carried)
-  C             État : Accroché (hooked)
-  V             État : Mort     (dead)
-  B             État : Sorti    (escaped)
+  H             État : Bonne santé (healthy)
+  I             État : Blessé      (injured)
+  W             État : À terre     (downed)
+  X             État : Porté       (carried)
+  C             État : Accroché    (hooked)
+  V             État : Mort        (dead)
+  B             État : Sorti       (escaped)
   ENTRÉE        Sauvegarder le template du survivant sélectionné dans l'état choisi
   R             Recharger les templates dans l'analyseur (après plusieurs captures)
   Q             Quitter
@@ -26,6 +28,8 @@ TEMPLATE_SIZE = 48  # taille de stockage des templates (48×48 px)
 SCALE         = 4   # facteur d'agrandissement de l'affichage
 
 STATE_KEYS = {
+    ord("h"): "healthy",
+    ord("i"): "injured",
     ord("w"): "downed",
     ord("x"): "carried",
     ord("c"): "hooked",
@@ -35,6 +39,8 @@ STATE_KEYS = {
 
 # Couleurs BGR par état pour l'interface
 STATE_COLORS = {
+    "healthy": (200, 255, 200),
+    "injured": (100, 100, 255),
     "downed":  (50,  50,  220),
     "carried": (50,  165, 255),
     "hooked":  (50,  220, 50),
@@ -53,7 +59,7 @@ def _center_roi(portrait: np.ndarray) -> np.ndarray:
 def _count_templates() -> dict[str, int]:
     """Compte le nombre de templates sauvegardés par état."""
     counts = {}
-    for state in ["downed", "carried", "hooked", "dead", "escaped"]:
+    for state in ["healthy", "injured", "downed", "carried", "hooked", "dead", "escaped"]:
         d = os.path.join(ICONS_DIR, state)
         counts[state] = len([f for f in os.listdir(d) if f.endswith(".png")]) if os.path.isdir(d) else 0
     return counts
@@ -114,7 +120,7 @@ def _build_display(frame: np.ndarray, selected: int, chosen_state: str | None) -
 
     line1 = f"Survivant : S{selected+1}   Etat : {chosen_state.upper() if chosen_state else 'NON CHOISI'}"
     line2 = "Templates : " + "  ".join(f"{s}={n}" for s, n in counts.items())
-    line3 = "1/2/3/4=select | W=downed  X=carried  C=hooked  V=dead  B=escaped | ENTREE=save | R=reload | Q=quit"
+    line3 = "1/2/3/4=select | H=healthy  I=injured  W=downed  X=carried  C=hooked  V=dead  B=escaped | ENTREE=save | Q=quit"
 
     cv2.putText(info, line1, (6, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 1)
     cv2.putText(info, line2, (6, 45), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (160, 160, 160), 1)
