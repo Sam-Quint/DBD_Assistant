@@ -17,7 +17,10 @@ echo  ╔═══════════════════════�
 echo  ║     Assistant DBD — Calibration      ║
 echo  ╚══════════════════════════════════════╝
 echo.
-echo  1  Calibrer la zone des portraits  ^<^<^< COMMENCER PAR LA
+echo  1  Reglage automatique des portraits  ^<^<^< COMMENCER PAR LA
+echo       ^> Indique ta resolution, les 4 cadres sont calcules
+echo.
+echo  4  Calibrer a la main (si le reglage automatique ne tombe pas juste)
 echo       ^> Clique-glisse pour encadrer les 4 portraits
 echo.
 echo  2  Capturer les templates d'icones  ^<^<^< FAIRE EN JEU
@@ -31,6 +34,10 @@ echo.
 set /p choix=Choix :
 
 if /i "%choix%"=="1" (
+    python\python.exe tools\auto_calibrer.py
+    goto :menu
+)
+if /i "%choix%"=="4" (
     python\python.exe tools\calibrer_roi.py
     goto :menu
 )

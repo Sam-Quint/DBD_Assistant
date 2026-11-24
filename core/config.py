@@ -1,30 +1,46 @@
 import json
 import os
 
+from core.layout import compute_layout
+
 # calibration.json est à la racine du projet (un niveau au-dessus de core/)
 _CALIB_PATH = os.path.join(os.path.dirname(__file__), "..", "calibration.json")
 
-_DEFAULT_ROI     = {"x": 60, "y": 330, "w": 220, "h": 280}
-_DEFAULT_MONITOR = None  # None = premier moniteur détecté par mss
+RESOLUTION = (1920, 1080)
 
+
+def _primary_height() -> int:
+    """Hauteur de l'écran principal (1080 si mss est indisponible)."""
+    try:
+        import mss
+        with mss.mss() as sct:
+            return sct.monitors[1]["height"]
+    except Exception:
+        return RESOLUTION[1]
+
+
+_calib = {}
 if os.path.exists(_CALIB_PATH):
     with open(_CALIB_PATH) as _f:
         _calib = json.load(_f)
-    PORTRAITS_ROI    = _calib.get("portraits_roi", _DEFAULT_ROI)
-    MONITOR_OVERRIDE = _calib.get("monitor", _DEFAULT_MONITOR)
+
+MONITOR_OVERRIDE = _calib.get("monitor")
+
+if "layout" in _calib:
+    # Réglage automatique : positions calculées depuis la résolution (tools/auto_calibrer.py)
+    _l = _calib["layout"]
+    _layout = compute_layout(_l["height"], _l.get("ui_scale", 1.0), _l.get("dx", 0), _l.get("dy", 0))
+    PORTRAITS_ROI      = _layout["roi"]
+    PORTRAIT_POSITIONS = _layout["positions"]
+elif "portraits_roi" in _calib:
+    # Ancien réglage manuel : zone dessinée à la main, positions fixes à l'intérieur
+    PORTRAITS_ROI = _calib["portraits_roi"]
+    PORTRAIT_POSITIONS = [{"x": 24, "y": y, "w": 60, "h": 60} for y in (24, 110, 200, 290)]
 else:
-    PORTRAITS_ROI    = _DEFAULT_ROI
-    MONITOR_OVERRIDE = _DEFAULT_MONITOR
-
-RESOLUTION = (1920, 1080)
-
-# Coordonnées des 4 portraits dans la ROI (relatif au coin haut-gauche de PORTRAITS_ROI)
-PORTRAIT_POSITIONS = [
-    {"x": 24, "y": 24,  "w": 60, "h": 60},   # Survivant 1
-    {"x": 24, "y": 110, "w": 60, "h": 60},   # Survivant 2
-    {"x": 24, "y": 200, "w": 60, "h": 60},   # Survivant 3
-    {"x": 24, "y": 290, "w": 60, "h": 60},   # Survivant 4
-]
+    # Aucun réglage : on suppose le jeu en plein écran sur l'écran principal
+    _layout = compute_layout(_primary_height())
+    PORTRAITS_ROI      = _layout["roi"]
+    PORTRAIT_POSITIONS = _layout["positions"]
 
 # Score minimum pour qu'un template match soit retenu
 TEMPLATE_THRESHOLD = 0.80

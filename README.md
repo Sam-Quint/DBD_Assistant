@@ -8,7 +8,7 @@ Overlay pour Dead by Daylight (côté Tueur). Détecte automatiquement les état
 
 - Windows 10 / 11
 - Connexion internet (uniquement pour le premier setup)
-- Dead by Daylight en **1920x1080 plein écran**
+- Dead by Daylight en plein écran (n'importe quelle résolution : 1080p, 1440p, 4K, 16:10, 21:9...)
 
 ---
 
@@ -24,11 +24,14 @@ Il télécharge automatiquement Python 3.12 portable et installe toutes les libr
 
 Double-clique sur **`calibrer.bat`**.
 
-**Étape 1 — Calibrer la zone des portraits**
-- Lance le jeu, puis reviens sur le menu de calibration → option **1**
-- Si tu as plusieurs écrans, choisis celui qui affiche le jeu
-- Clique-glisse pour encadrer la zone des 4 portraits (haut gauche du jeu)
-- Appuie sur `ENTRÉE` pour sauvegarder → génère `calibration.json`
+**Étape 1 — Réglage automatique des portraits** *(option 1)*
+- Lance le jeu avec les 4 portraits visibles, puis reviens sur le menu → option **1**
+- Choisis l'écran, puis confirme ta résolution (détectée automatiquement, ou choisis un préréglage / tape `LARGEURxHAUTEUR`)
+- Les 4 cadres sont **calculés** à partir de la résolution. L'état reconnu s'affiche à côté de chaque portrait : si c'est juste, appuie sur `ENTRÉE`
+- Si les cadres sont décalés : flèches (ou ZQSD/WASD) pour décaler, `+` / `-` pour l'échelle d'interface, `R` pour remettre à zéro
+- L'interface du jeu est dimensionnée par la **hauteur** de l'écran : le ratio (16:9, 16:10, 21:9) ne change pas le calcul
+- Sans aucun réglage, l'assistant suppose le jeu en plein écran sur l'écran principal
+- L'option **4** garde l'ancienne calibration à la main (clique-glisse) en dernier recours
 
 **Étape 2 — Capturer les templates d'icônes** *(option 2)*
 Lance le jeu et joue normalement. Dès qu'un survivant est dans un état particulier, reviens rapidement sur la fenêtre de capture et sauvegarde :
@@ -98,6 +101,7 @@ DBD_Assistant/
 │
 ├── core/                ← logique métier
 │   ├── config.py        ← constantes + chargement de calibration.json
+│   ├── layout.py        ← position des portraits calculée depuis la résolution
 │   ├── state.py         ← données des survivants + GameState partagé
 │   ├── timers.py        ← gestion des timers (CD, Fardeau, Wiggle...)
 │   └── logic.py         ← règles du jeu, détection des perks
@@ -110,7 +114,8 @@ DBD_Assistant/
 │   └── overlay.py       ← fenêtre tkinter transparente par-dessus le jeu
 │
 ├── tools/               ← calibration et debug (jamais lancés en jeu)
-│   ├── calibrer_roi.py  ← sélection interactive de la zone des portraits
+│   ├── auto_calibrer.py ← réglage automatique (résolution -> 4 cadres)
+│   ├── calibrer_roi.py  ← sélection manuelle de la zone des portraits
 │   ├── capture_icon.py  ← capture des templates d'icônes pendant une partie
 │   └── test_vision.py   ← debug de la détection en temps réel
 │
