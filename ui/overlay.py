@@ -138,7 +138,7 @@ class Overlay:
         self.root.attributes("-alpha", 0.92)
         x = PORTRAITS_ROI["x"] + PORTRAITS_ROI["w"] + 4
         y = PORTRAITS_ROI["y"]
-        self.root.geometry(f"{BLOCK_W}+{x}+{y}")
+        self.root.geometry(f"+{x}+{y}")   # taille laissée au contenu (BLOCK_W par bloc)
         self.root.config(bg=COLOR_BG)
 
     def _build_ui(self):
