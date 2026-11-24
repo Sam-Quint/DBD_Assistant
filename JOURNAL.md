@@ -14,7 +14,7 @@ Objectif : app Windows en C# qui lit uniquement les pixels de l'écran (aucune i
 | 1. Socle .NET + capture d'écran (DXGI) | ✅ fait, validé sur DBD (image non noire, 8-9 images/s) |
 | 1b. Exe autonome sans .NET à installer | ✅ généré (60 Mo), démarre sans SDK sur le PC dev ; **à tester sur le PC "Fix"** |
 | 2. Localiser les 4 portraits et leurs zones (cercle, marques `!`, 2 barres) | ✅ fait en 1080p, vérifié à l'œil sur 35 captures. **À re-vérifier sur le vrai jeu** (demain) |
-| 3. Reconnaître les états (sain, blessé, Deep Wounds, à terre, porté, accroché, mort, sorti, Mori) | ✅ implémenté. 135/135 sur les captures étiquetées, **mais seuils réglés sur ces mêmes captures : à confirmer sur ta vidéo et sur le vrai jeu**. Peu d'exemples : Deep Wounds 1, sorti 2, Mori 4 |
+| 3. Reconnaître les états (sain, blessé, Deep Wounds, à terre, porté, accroché, mort, sorti, Mori) | ✅ implémenté et confirmé en vidéo (états justes sur 9 captures). 171/171 sur les captures étiquetées, **mais seuils réglés sur ces mêmes captures : à confirmer sur le vrai jeu**. Exemples : Deep Wounds 5, sorti 2, Mori 4 |
 | 4. Fenêtre d'état en temps réel | ✅ 4 cartes (état, score, griffures, barre jaune, crochets lus) dans l'app ; lissage sur 3 images. Marques `!` : **à valider** |
 | 5. Overlay sur le jeu + timers | ⏳ plus tard |
 | 6. Interface de réglages / calibration | ⏳ plus tard |
@@ -37,6 +37,41 @@ Objectif : app Windows en C# qui lit uniquement les pixels de l'écran (aucune i
 - Les captures viennent d'une **vidéo plein écran** sur le PC client : plus floues que le vrai jeu (compression). Mode d'affichage du jeu : **sans bordure**. Le plein écran exclusif n'a donc pas été testé.
 
 Questions ouvertes : test de capture sur le vrai jeu (pas une vidéo).
+
+---
+
+## Pour la prochaine session (a reprendre demain)
+
+1. **Captures du vrai jeu** (promises par l'utilisateur) : verifier le placement des zones (`annoter`) et les etats (`lire`, `evaluer`), surtout la position verticale des portraits et la barre jaune.
+2. Ajouter de nouvelles captures a `labels.txt` puis `modeles` + `evaluer` ; chercher des cas faux plutot que de regler sur les memes images.
+3. Marques `!` : encore sous-estimees sur fond rouge/blanc. Pistes : seuil relatif au fond local, forme du trait (hauteur/largeur), ou deduire le nombre de crochets d'apres les barres.
+4. Tester `publish\DbdAssistant.exe` sur le PC « Fix » (pas encore fait) et noter la reaction de l'antivirus / SmartScreen.
+5. Ensuite : overlay sur le jeu, timers (Coup Decisif, Fardeau, Wiggle...) calcules depuis les changements d'etat, ecran de reglages.
+6. **Rien n'est commite ni pousse depuis le commit « lecture des etats »** : les changements du jour (barre jaune par teinte, lissage des crochets, 9 captures etiquetees, templates.bin regenere) sont seulement en local.
+
+Commandes utiles (depuis `DBD_Assistant/`) :
+- App : `dotnet run --project src/DbdAssistant.App` ; exe : `publier.bat`
+- Outils : `dotnet run --project src/DbdAssistant.Tools -- annoter | modeles | evaluer | lire <dossier> <prefixe> | lissage`
+
+---
+
+## 2026-11-25 (captures de la video avec le retour de l'app)
+
+- 9 nouvelles captures (`capture_20261125_*`) recues, avec les cartes de l'app visibles. Etats : tous justes. Defaut confirme : la barre jaune de « hateuue » etait visible mais l'app affichait « barre jaune : non » (ancien exe).
+- Cause mesuree : sur cette map verte la barre vaut ~(201, 213, 72), teinte 65-71 degres, hors de ma plage 40-66. Plage elargie a 40-76 (le vert de feuillage, ~90+, reste exclu ; le sable orange, ~30, aussi). Deep Wounds : 5/5 sur les captures etiquetees (1/1 avant).
+- Marques `!` : seuil de luminosite 190 -> 165 (deux `!!` supplementaires lus ; a 140 de faux `!!` apparaissent). Reste imparfait : `!!` flous sur fond rouge ou blanc encore lus 0.
+- `labels.txt` : +36 survivants etiquetes (total 171), `templates.bin` regenere (53 modeles). Evaluation : 171/171. Reglage fait en regardant ces memes captures : a confirmer sur de nouvelles.
+- Outil : commande `lire <dossier> <prefixe>` (affiche les etats lus pour des captures).
+- Exe regenere dans `publish/`.
+
+---
+
+## 2026-11-25 (retours du test sur video)
+
+- Retour utilisateur : la detection des etats fonctionne bien ; la barre jaune n'est pas toujours detectee (depend du fond) ; le nombre de crochets oscille 1 -> 0 -> 1.
+- Crochets : nouveau `HookCountSmoother` (Core). Monte si une valeur est lue sur >= 8 des 20 dernieres images ; ne redescend que si elle n'est plus vue pendant 60 images. Verifie sur des sequences de test (commande `lissage` de l'outil) : scintillement stabilise a 1 apres ~1,4 s, pic parasite ignore, `!` masque 0,5 s sans effet.
+- Barre jaune : detection par teinte (jaune 40-66 degres, saturee) et par forme (bande horizontale remplie >= 25 %, lignes voisines peu jaunes) au lieu de seuils RVB fixes, avec tolerance verticale de 2 px. Meme resultat sur les 135 survivants etiquetes (le sable orange reste refuse). **Non valide sur les cas reels rates** : les nouvelles captures n'ont pas ete retrouvees dans le projet.
+- Exe regenere dans `publish/`.
 
 ---
 

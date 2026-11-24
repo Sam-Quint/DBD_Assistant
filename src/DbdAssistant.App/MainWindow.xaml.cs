@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     private ScreenCapturer? _capturer;
     private StateRecognizer? _recognizer;
     private readonly StateSmoother[] _smoothers = Enumerable.Range(0, 4).Select(_ => new StateSmoother(3)).ToArray();
+    private readonly HookCountSmoother[] _hookSmoothers = Enumerable.Range(0, 4).Select(_ => new HookCountSmoother()).ToArray();
     private readonly TextBlock[] _stateText = new TextBlock[4];
     private readonly TextBlock[] _detailText = new TextBlock[4];
     private readonly Border[] _cards = new Border[4];
@@ -105,13 +106,14 @@ public partial class MainWindow : Window
         {
             var r = _recognizer!.Read(frame, zones[i]);
             var state = _smoothers[i].Update(r.State);
+            int hooks = _hookSmoothers[i].Update(r.HookMarks);
             var color = ColorOf(state);
             _stateText[i].Text = SurvivorStates.Label(state);
             _stateText[i].Foreground = new SolidColorBrush(color);
             _cards[i].BorderBrush = new SolidColorBrush(color);
             _detailText[i].Text =
                 $"icone : {SurvivorStates.Label(r.BestIcon)} ({r.IconScore:0.00})\n" +
-                $"crochets lus : {r.HookMarks} (a valider)\n" +
+                $"crochets : {hooks}  (brut {r.HookMarks}, a valider)\n" +
                 $"griffures : {r.Scratch:0.000}  barre jaune : {(r.YellowBar ? "oui" : "non")}";
         }
 

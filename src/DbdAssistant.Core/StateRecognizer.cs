@@ -29,6 +29,7 @@ public sealed class StateRecognizer
     public double IconThreshold { get; set; } = 0.72;
     public double ScratchThreshold { get; set; } = 0.002;
     public double BarThreshold { get; set; } = 0.10;
+    public int MarkBrightness { get; set; } = 165;
 
     public StateRecognizer(TemplateLibrary library) => _library = library;
 
@@ -43,10 +44,9 @@ public sealed class StateRecognizer
         // Barres et marques
         double bar1 = ColorFraction(f, z.Bar1, red: true) + ColorFraction(f, z.Bar1, red: false);
         double bar2 = ColorFraction(f, z.Bar2, red: true) + ColorFraction(f, z.Bar2, red: false);
-        bool yellow = ColorFraction(f, z.Bar1, red: false) >= BarThreshold
-                   || ColorFraction(f, z.Bar2, red: false) >= BarThreshold;
+        bool yellow = HasYellowBar(f, z.Bar1) || HasYellowBar(f, z.Bar2);
         double scratch = ScratchFraction(f, cx, cy, z.Disc.W / 2);
-        int marks = CountMarks(f, z.Marks);
+        int marks = CountMarks(f, z.Marks, MarkBrightness);
 
         SurvivorState state;
         if (bestScore >= IconThreshold) state = bestState;
@@ -121,6 +121,54 @@ public sealed class StateRecognizer
         return Math.Min(f.Bgra[i], Math.Min(f.Bgra[i + 1], f.Bgra[i + 2]));
     }
 
+    // ---------- barre jaune (Deep Wounds) ----------
+
+    private static bool IsYellow(int r, int g, int b)
+    {
+        // Teinte jaune (40-76 degres : le vert ambiant d une map decale la teinte), assez saturee et lumineuse. Independant du fond :
+        // le sable orange (teinte ~30) et les tons bruns sont ecartes par la teinte.
+        int max = Math.Max(r, Math.Max(g, b)), min = Math.Min(r, Math.Min(g, b));
+        if (max < 140 || max == 0) return false;
+        double d = max - min;
+        if (d / max < 0.55) return false;
+        double h = max == r ? 60 * ((g - b) / d) : max == g ? 60 * (2 + (b - r) / d) : 60 * (4 + (r - g) / d);
+        if (h < 0) h += 360;
+        return h >= 40 && h <= 76;
+    }
+
+    private static double YellowRowFraction(Frame f, int x0, int w, int y)
+    {
+        if (y < 0 || y >= f.Height) return 0;
+        int hits = 0, total = 0;
+        for (int x = x0; x < x0 + w; x++)
+        {
+            if (x < 0 || x >= f.Width) continue;
+            int i = (y * f.Width + x) * 4;
+            if (IsYellow(f.Bgra[i + 2], f.Bgra[i + 1], f.Bgra[i])) hits++;
+            total++;
+        }
+        return total == 0 ? 0 : (double)hits / total;
+    }
+
+    /// <summary>
+    /// Une barre = une bande horizontale jaune. On cherche la ligne la plus jaune de la zone (tolerance
+    /// verticale +/- 2 px), qui doit etre au moins remplie a 25 % (barre vidant), et on verifie que les
+    /// lignes juste au-dessus et en dessous le sont beaucoup moins : un fond jaune uni est refuse.
+    /// </summary>
+    private static bool HasYellowBar(Frame f, Zone z)
+    {
+        double best = 0; int bestY = z.Y;
+        for (int y = z.Y - 2; y < z.Y + z.H + 2; y++)
+        {
+            double r = YellowRowFraction(f, z.X, z.W, y);
+            if (r > best) { best = r; bestY = y; }
+        }
+        if (best < 0.25) return false;
+        double above = YellowRowFraction(f, z.X, z.W, bestY - 8);
+        double below = YellowRowFraction(f, z.X, z.W, bestY + 8);
+        return above < best * 0.5 && below < best * 0.5;
+    }
+
     // ---------- couleurs ----------
 
     private static double ColorFraction(Frame f, Zone z, bool red)
@@ -159,7 +207,7 @@ public sealed class StateRecognizer
 
     // ---------- marques "!" ----------
 
-    private static int CountMarks(Frame f, Zone z)
+    private static int CountMarks(Frame f, Zone z, int brightness)
     {
         int groups = 0;
         bool inGroup = false;
@@ -167,7 +215,7 @@ public sealed class StateRecognizer
         {
             int count = 0;
             for (int y = z.Y; y < z.Y + z.H; y++)
-                if (MinChannel(f, x, y) >= 190) count++;
+                if (MinChannel(f, x, y) >= brightness) count++;
             bool stroke = count >= Math.Max(6, z.H / 3);
             if (stroke && !inGroup) groups++;
             inGroup = stroke;

@@ -16,6 +16,8 @@ switch (cmd)
     case "annoter": Annoter(capDir, args.Length > 2 ? args[2] : Path.Combine(capDir, "annotees")); break;
     case "modeles": Modeles(capDir); break;
     case "evaluer": Evaluer(capDir); break;
+    case "lissage": TestLissage(); break;
+    case "lire": Lire(capDir, args.Length > 2 ? args[2] : ""); break;
     default: Console.WriteLine("Commandes : annoter | modeles | evaluer"); break;
 }
 
@@ -135,3 +137,37 @@ static void Evaluer(string capDir)
         Console.WriteLine($"  {SurvivorStates.Label(g.Key),-12} icone {g.Min(d => d.r.IconScore):0.00}..{g.Max(d => d.r.IconScore):0.00}   griffures {g.Min(d => d.r.Scratch):0.000}..{g.Max(d => d.r.Scratch):0.000}");
 }
 
+
+static void TestLissage()
+{
+    static string Run(string name, IEnumerable<int> raw)
+    {
+        var sm = new HookCountSmoother();
+        var outp = raw.Select(sm.Update).ToArray();
+        return $"{name,-34} sortie : {string.Join("", outp.Select(x => x.ToString()))}";
+    }
+    var flicker = Enumerable.Range(0, 60).Select(i => i % 2 == 0 ? 1 : 0).ToList();   // 1,0,1,0...
+    var spike = Enumerable.Repeat(0, 30).Concat(new[] { 3, 3 }).Concat(Enumerable.Repeat(0, 40));  // pic parasite
+    var real = Enumerable.Repeat(0, 20).Concat(Enumerable.Repeat(1, 40));               // vrai 1er crochet
+    var dips = Enumerable.Repeat(1, 30).Concat(new[] { 0, 0, 0, 0, 0 }).Concat(Enumerable.Repeat(1, 30)); // "!" masque 0,5 s
+    var two = Enumerable.Repeat(1, 25).Concat(Enumerable.Repeat(2, 30));                 // 1 puis 2
+    Console.WriteLine(Run("scintillement 1,0,1,0", flicker));
+    Console.WriteLine(Run("pic parasite 3 (2 images)", spike));
+    Console.WriteLine(Run("vrai 1er crochet", real));
+    Console.WriteLine(Run("! masque 0,5 s", dips));
+    Console.WriteLine(Run("1 puis 2 crochets", two));
+}
+
+static void Lire(string capDir, string prefix)
+{
+    var lib = TemplateLibrary.Load(File.OpenRead(Path.Combine("src", "DbdAssistant.Core", "templates.bin")));
+    var rec = new StateRecognizer(lib);
+    if (Environment.GetEnvironmentVariable("MARK_BRIGHT") is string mb) rec.MarkBrightness = int.Parse(mb);
+    foreach (var file in Directory.GetFiles(capDir, prefix + "*.png").OrderBy(f => f, StringComparer.Ordinal))
+    {
+        var frame = LoadFrame(file);
+        var zones = PortraitLayout.Compute(frame.Height);
+        var parts = zones.Select(z => rec.Read(frame, z)).Select(r => $"{SurvivorStates.Label(r.State)}{(r.YellowBar ? "[jaune]" : "")}/!{r.HookMarks}");
+        Console.WriteLine($"{Path.GetFileNameWithoutExtension(file)[^6..]}  " + string.Join("  |  ", parts));
+    }
+}
