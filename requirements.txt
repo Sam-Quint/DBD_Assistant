@@ -2,4 +2,4 @@ mss
 opencv-python
 pynput
 numpy
-scikit-learn
+pillow

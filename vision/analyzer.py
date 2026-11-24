@@ -1,12 +1,8 @@
-import os
 import cv2
 import numpy as np
-import joblib
 from core.config import PORTRAIT_POSITIONS
 from core.state import SurvivorState
-from vision.features import extract_hog
-
-_CLASSIFIER_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "state_clf.joblib")
+from vision.status_recognizer import StatusRecognizer
 
 
 class SurvivorSnapshot:
@@ -17,32 +13,17 @@ class SurvivorSnapshot:
 
 class VisionAnalyzer:
     """
-    Analyse les 4 portraits via un classifieur SVM HOG unique.
+    Analyse les 4 portraits par règles (aucun modèle appris).
 
-    Pipeline :
-      1. Classifieur SVM (assets/state_clf.joblib) → état détecté
-      2. Sinon → HEALTHY par défaut
-
-    Entraîner le modèle via Entrainement/train_classifier.ipynb.
+    Pipeline (voir vision/status_recognizer.py) :
+      1. Griffures                      → injured
+      2. Pictogramme blanc (forme)      → downed / carried / hooked / dead / escaped
+      3. Sinon                          → healthy
     """
 
     def __init__(self):
-        self._clf = self._load_classifier()
-        if self._clf:
-            print(f"[VisionAnalyzer] Classifieur chargé — états : {self._clf['states']}")
-        else:
-            print("[VisionAnalyzer] Pas de classifieur — tout affiché HEALTHY")
-
-    def _load_classifier(self):
-        if os.path.exists(_CLASSIFIER_PATH):
-            try:
-                return joblib.load(_CLASSIFIER_PATH)
-            except Exception as e:
-                print(f"[VisionAnalyzer] Erreur chargement : {e}")
-        return None
-
-    def reload(self):
-        self._clf = self._load_classifier()
+        self._recognizer = StatusRecognizer()
+        print("[VisionAnalyzer] Reconnaissance par règles chargée")
 
     # ── Pipeline ──────────────────────────────────────────────────────────────
 
@@ -59,14 +40,7 @@ class VisionAnalyzer:
         if roi.size == 0:
             return snap
 
-        h, w       = roi.shape[:2]
-        center_roi = roi[h//10 : 9*h//10, w//10 : 9*w//10]
-
-        if self._clf:
-            features   = extract_hog(center_roi)
-            pred       = self._clf["model"].predict([features])[0]
-            snap.state = self._clf["states"][pred]
-
+        snap.state, _ = self._recognizer.classify_bgr(roi)
         snap.hook_bars = self._count_white_bars(roi)
         return snap
 
@@ -95,25 +69,12 @@ class VisionAnalyzer:
                 debug_list.append({})
                 continue
 
-            h, w       = roi.shape[:2]
-            center_roi = roi[h//10:9*h//10, w//10:9*w//10]
-
-            clf_pred, clf_conf = SurvivorState.HEALTHY, 0.0
-            if self._clf:
-                features  = extract_hog(center_roi)
-                pred      = self._clf["model"].predict([features])[0]
-                proba     = self._clf["model"].predict_proba([features])[0]
-                clf_pred  = self._clf["states"][pred]
-                clf_conf  = round(float(max(proba)), 3)
-
-            snap = self._analyze_portrait(roi)
-
+            state, score = self._recognizer.classify_bgr(roi)
             debug_list.append({
                 "survivor":  i + 1,
-                "state":     snap.state,
-                "clf_pred":  clf_pred,
-                "clf_conf":  clf_conf,
-                "hook_bars": snap.hook_bars,
+                "state":     state,
+                "score":     round(float(score), 3),
+                "hook_bars": self._count_white_bars(roi),
             })
 
         return debug_list

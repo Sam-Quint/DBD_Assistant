@@ -40,14 +40,9 @@ def draw_debug_panel(frame: np.ndarray, debug_list: list) -> np.ndarray:
         state  = info.get("state", "?")
         color  = STATE_COLORS.get(state, (200, 200, 200))
 
-        clf_pred = info.get("clf_pred")
-        clf_conf = info.get("clf_conf", 0.0)
-        clf_str  = f"{clf_pred}({clf_conf:.2f})" if clf_pred else "no model"
-
         lines = [
             f"S{i+1}: {state.upper()}",
-            f"  tmpl={info.get('icon_match','none')} ({info.get('icon_score',0):.3f})",
-            f"  clf={clf_str}",
+            f"  score={info.get('score',0):.3f}",
             f"  hooks={info.get('hook_bars',0)}",
         ]
         for j, line in enumerate(lines):
