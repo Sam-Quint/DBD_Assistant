@@ -11,3 +11,9 @@ python_install*.log
 build/
 dist/
 *.spec
+
+# .NET
+bin/
+obj/
+.vs/
+Captures/
