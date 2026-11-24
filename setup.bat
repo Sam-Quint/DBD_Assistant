@@ -1,50 +1,55 @@
 @echo off
-chcp 65001 >nul
-title Assistant DBD — Setup
-echo.
-echo  ╔══════════════════════════════════════╗
-echo  ║     Assistant DBD — Setup            ║
-echo  ╚══════════════════════════════════════╝
-echo.
-
+title Assistant DBD - Setup
 cd /d "%~dp0"
+echo.
+echo  === Assistant DBD - Setup ===
+echo.
 
 if exist "python\python.exe" (
     python\python.exe -c "import tkinter" 2>nul
     if not errorlevel 1 (
-        echo [OK] Python portable déjà présent.
+        echo [OK] Python portable deja present.
+        set PY=python\python.exe
         goto :install_deps
     )
-    echo [INFO] Le Python portable existant n'a pas tkinter ^(necessaire a l'overlay^) : reinstallation.
+    echo [INFO] Le Python portable existant n'a pas tkinter : reinstallation.
     rmdir /s /q python
 )
 
-echo [1/3] Téléchargement de Python 3.12 ^(installeur officiel python.org^)...
+rem Python du systeme (3.12+ avec tkinter) : pas besoin de telecharger
+python -c "import tkinter" 2>nul
+if not errorlevel 1 (
+    echo [OK] Python du systeme utilise.
+    set PY=python
+    goto :install_deps
+)
+
+echo [1/3] Telechargement de Python 3.12 (installeur officiel python.org)...
 set PY_URL=https://www.python.org/ftp/python/3.12.8/python-3.12.8-amd64.exe
 powershell -Command "Invoke-WebRequest -Uri '%PY_URL%' -OutFile 'python_installer.exe'" 2>nul
 if errorlevel 1 (
-    echo [ERREUR] Téléchargement échoué. Vérifie ta connexion internet.
+    echo [ERREUR] Telechargement echoue. Verifie ta connexion internet.
     pause & exit /b 1
 )
 
-echo [2/3] Installation de Python dans le dossier du projet ^(sans droits administrateur, ne modifie pas le PATH^)...
+echo [2/3] Installation de Python dans le dossier du projet...
 start /wait "" python_installer.exe /quiet /log "%~dp0python_install.log" InstallAllUsers=0 "TargetDir=%~dp0python" Include_tcltk=1 Include_pip=1 Include_launcher=0 Include_test=0 Include_doc=0 Include_dev=0 Shortcuts=0 AssociateFiles=0 PrependPath=0 CompileAll=0
 del python_installer.exe
 if not exist "python\python.exe" (
-    echo [ERREUR] L'installation de Python a échoué.
-    echo Journal complet : %~dp0python_install.log
-    echo --- Dernières lignes du journal ---
-    powershell -Command "Get-ChildItem '%~dp0python_install*.log' | Sort-Object LastWriteTime | Select-Object -Last 1 | Get-Content -Tail 15"
+    echo [ERREUR] L'installation de Python a echoue. Journal : %~dp0python_install.log
     pause & exit /b 1
 )
+set PY=python\python.exe
 
 :install_deps
 echo [3/3] Installation des librairies...
-python\python.exe -m pip install -r requirements.txt --quiet
+%PY% -m pip install -r requirements.txt
+if errorlevel 1 (
+    echo [ERREUR] Installation des librairies echouee.
+    pause & exit /b 1
+)
 
 echo.
-echo  Setup terminé !
-echo  Lance start.bat pour démarrer l'assistant.
-echo  Lance calibrer.bat pour calibrer les portraits.
+echo  Setup termine. Lance start.bat puis calibrer.bat.
 echo.
 pause

@@ -1,24 +1,18 @@
 @echo off
-chcp 65001 >nul
 title Assistant DBD
-
 cd /d "%~dp0"
 
-if not exist "python\python.exe" (
-    echo [ERREUR] Python portable introuvable.
-    echo Lance setup.bat en premier.
-    pause & exit /b 1
-)
+if exist "python\python.exe" (set PY=python\python.exe) else (set PY=python)
 
-python\python.exe -c "import mss, cv2, numpy, pynput, PIL" 2>nul
+%PY% -c "import mss, cv2, numpy, pynput, PIL" 2>nul
 if errorlevel 1 (
     echo Librairies manquantes, installation en cours...
-    python\python.exe -m pip install -r requirements.txt
+    %PY% -m pip install -r requirements.txt
 )
 
-python\python.exe main.py
+%PY% main.py
 if errorlevel 1 (
     echo.
     echo [ERREUR] L'assistant s'est arrete. Message ci-dessus.
-    pause
 )
+pause
