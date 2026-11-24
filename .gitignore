@@ -6,3 +6,4 @@ __pycache__/
 *.zip
 calibration.json
 assets/icons/
+python_install*.log

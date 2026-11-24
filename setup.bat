@@ -28,10 +28,13 @@ if errorlevel 1 (
 )
 
 echo [2/3] Installation de Python dans le dossier du projet ^(sans droits administrateur, ne modifie pas le PATH^)...
-start /wait "" python_installer.exe /quiet InstallAllUsers=0 "TargetDir=%~dp0python" Include_tcltk=1 Include_pip=1 Include_launcher=0 Include_test=0 Include_doc=0 Include_dev=0 Shortcuts=0 AssociateFiles=0 PrependPath=0 CompileAll=0
+start /wait "" python_installer.exe /quiet /log "%~dp0python_install.log" InstallAllUsers=0 "TargetDir=%~dp0python" Include_tcltk=1 Include_pip=1 Include_launcher=0 Include_test=0 Include_doc=0 Include_dev=0 Shortcuts=0 AssociateFiles=0 PrependPath=0 CompileAll=0
 del python_installer.exe
 if not exist "python\python.exe" (
     echo [ERREUR] L'installation de Python a échoué.
+    echo Journal complet : %~dp0python_install.log
+    echo --- Dernières lignes du journal ---
+    powershell -Command "Get-ChildItem '%~dp0python_install*.log' | Sort-Object LastWriteTime | Select-Object -Last 1 | Get-Content -Tail 15"
     pause & exit /b 1
 )
 
