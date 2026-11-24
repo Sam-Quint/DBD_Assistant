@@ -16,7 +16,9 @@ import numpy as np
 import mss
 import json
 
-CALIB_PATH = os.path.join(os.path.dirname(__file__), "..", "calibration.json")
+from core.paths import app_dir
+
+CALIB_PATH = os.path.join(app_dir(), "calibration.json")
 
 drawing = False
 start_x = start_y = end_x = end_y = 0

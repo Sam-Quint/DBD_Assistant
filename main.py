@@ -28,6 +28,12 @@ from core.config import CAPTURE_FPS, KEY_CANCEL, KEY_SELECT, KEY_PERKS, MANUAL_P
 
 
 def main():
+    # DBD_Assistant.exe --calibrer : réglage automatique des portraits (menu console)
+    if "--calibrer" in sys.argv:
+        from tools import auto_calibrer
+        auto_calibrer.main()
+        return
+
     timer_manager = TimerManager()
     capture       = ScreenCapture()
     vision        = VisionAnalyzer()
@@ -93,4 +99,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        import traceback
+        traceback.print_exc()
+        if getattr(sys, "frozen", False):   # exécutable : garder la fenêtre ouverte pour lire l'erreur
+            input("Appuie sur Entrée pour fermer...")
+        raise SystemExit(1)

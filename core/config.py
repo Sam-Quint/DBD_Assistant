@@ -3,8 +3,10 @@ import os
 
 from core.layout import compute_layout
 
-# calibration.json est à la racine du projet (un niveau au-dessus de core/)
-_CALIB_PATH = os.path.join(os.path.dirname(__file__), "..", "calibration.json")
+from core.paths import app_dir
+
+# calibration.json est à côté de l'application (racine du projet, ou dossier de l'.exe)
+_CALIB_PATH = os.path.join(app_dir(), "calibration.json")
 
 RESOLUTION = (1920, 1080)
 

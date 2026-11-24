@@ -1,0 +1,12 @@
+ASSISTANT DBD — aucune installation, Python n'est pas necessaire
+==================================================================
+
+1. Decompresse tout le dossier (ne lance pas l'exe depuis le zip).
+2. Lance Dead by Daylight (plein ecran), avec les 4 portraits visibles.
+3. Double-clique sur  Calibrer.bat  (une seule fois par resolution) :
+   - confirme ta resolution, verifie que l'etat reconnu a cote de chaque portrait est juste,
+     ajuste avec les fleches / + / - si besoin, puis ENTREE pour sauvegarder.
+4. Double-clique sur  DBD_Assistant.exe  pour demarrer l'assistant.
+
+Si Windows SmartScreen bloque l'exe : "Informations complementaires" puis "Executer quand meme".
+Si l'antivirus le signale a tort, ajoute le dossier aux exclusions.

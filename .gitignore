@@ -7,3 +7,7 @@ __pycache__/
 calibration.json
 assets/icons/
 python_install*.log
+.buildenv/
+build/
+dist/
+*.spec

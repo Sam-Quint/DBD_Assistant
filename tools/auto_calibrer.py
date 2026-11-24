@@ -21,9 +21,13 @@ import cv2
 import numpy as np
 
 from core.layout import PRESETS, compute_layout
-from calibrer_roi import capture_monitor, choose_monitor, list_monitors
+from core.paths import app_dir
+try:
+    from calibrer_roi import capture_monitor, choose_monitor, list_monitors
+except ImportError:   # exécutable packagé : le module est dans le paquet tools
+    from tools.calibrer_roi import capture_monitor, choose_monitor, list_monitors
 
-CALIB_PATH = os.path.join(os.path.dirname(__file__), "..", "calibration.json")
+CALIB_PATH = os.path.join(app_dir(), "calibration.json")
 
 STATE_COLORS = {   # BGR
     "healthy": (80, 200, 80), "injured": (60, 60, 255), "downed": (0, 140, 255),

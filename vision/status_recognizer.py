@@ -15,7 +15,9 @@ import cv2
 import numpy as np
 from PIL import Image, ImageFilter
 
-_ASSETS = os.path.join(os.path.dirname(__file__), "..", "assets", "statuts")
+from core.paths import resource_dir
+
+_ASSETS = os.path.join(resource_dir(), "assets", "statuts")
 
 N = 48                  # taille de travail (px)
 SHIFT = 2               # tolérance de décalage de la forme (px)

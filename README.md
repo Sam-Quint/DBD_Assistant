@@ -4,25 +4,35 @@ Overlay pour Dead by Daylight (côté Tueur). Détecte automatiquement les état
 
 ---
 
-## Prérequis
+## Pour jouer (aucune installation, Python n'est pas nécessaire)
 
-- Windows 10 / 11
-- Connexion internet (uniquement pour le premier setup)
-- Dead by Daylight en plein écran (n'importe quelle résolution : 1080p, 1440p, 4K, 16:10, 21:9...)
+1. Télécharge `DBD_Assistant.zip` et **décompresse tout le dossier**
+2. Lance Dead by Daylight en plein écran (n'importe quelle résolution : 1080p, 1440p, 4K, 16:10, 21:9...)
+3. Double-clique sur **`Calibrer.bat`** (une seule fois par résolution) : voir « Calibration » ci-dessous
+4. Double-clique sur **`DBD_Assistant.exe`**
+
+Windows SmartScreen peut bloquer l'exécutable (non signé) : « Informations complémentaires » puis « Exécuter quand même ».
 
 ---
 
-## Installation (une seule fois)
+## Pour développer (Python requis)
 
-Double-clique sur **`setup.bat`**.
+Prérequis : Windows 10 / 11, Python 3.12+ avec tkinter.
 
-Il télécharge automatiquement Python 3.12 portable et installe toutes les librairies. Aucune installation manuelle requise.
+```
+pip install -r requirements.txt
+python main.py               # lance l'assistant
+python main.py --calibrer    # réglage automatique des portraits
+build_exe.bat                # construit dist\DBD_Assistant.zip (l'exécutable à distribuer)
+```
+
+`setup.bat` / `start.bat` / `calibrer.bat` sont les anciens lanceurs basés sur un Python portable téléchargé ; ils ne sont plus recommandés (l'exécutable les remplace).
 
 ---
 
 ## Calibration (une seule fois, en jeu)
 
-Double-clique sur **`calibrer.bat`**.
+Double-clique sur **`Calibrer.bat`** (version exécutable : lance directement l'étape 1) ou, en développement, sur `calibrer.bat` (menu avec les options ci-dessous).
 
 **Étape 1 — Réglage automatique des portraits** *(option 1)*
 - Lance le jeu avec les 4 portraits visibles, puis reviens sur le menu → option **1**
