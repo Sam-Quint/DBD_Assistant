@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbdAssistant.Core", "src\Db
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbdAssistant.App", "src\DbdAssistant.App\DbdAssistant.App.csproj", "{A9F86E36-9441-4694-A539-16701180EDE8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbdAssistant.Tools", "src\DbdAssistant.Tools\DbdAssistant.Tools.csproj", "{A13AEDC7-3144-4391-8CFB-6BB2BC2961D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,9 +28,14 @@ Global
 		{A9F86E36-9441-4694-A539-16701180EDE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9F86E36-9441-4694-A539-16701180EDE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9F86E36-9441-4694-A539-16701180EDE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A13AEDC7-3144-4391-8CFB-6BB2BC2961D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A13AEDC7-3144-4391-8CFB-6BB2BC2961D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A13AEDC7-3144-4391-8CFB-6BB2BC2961D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A13AEDC7-3144-4391-8CFB-6BB2BC2961D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8AEF0FAF-4F1A-46B0-9B81-8227BBF38310} = {8083DCAF-809F-48EF-B116-1C93A606879D}
 		{A9F86E36-9441-4694-A539-16701180EDE8} = {8083DCAF-809F-48EF-B116-1C93A606879D}
+		{A13AEDC7-3144-4391-8CFB-6BB2BC2961D8} = {8083DCAF-809F-48EF-B116-1C93A606879D}
 	EndGlobalSection
 EndGlobal

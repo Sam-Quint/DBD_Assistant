@@ -13,14 +13,50 @@ Objectif : app Windows en C# qui lit uniquement les pixels de l'écran (aucune i
 | --- | --- |
 | 1. Socle .NET + capture d'écran (DXGI) | ✅ fait, validé sur DBD (image non noire, 8-9 images/s) |
 | 1b. Exe autonome sans .NET à installer | ✅ généré (60 Mo), démarre sans SDK sur le PC dev ; **à tester sur le PC "Fix"** |
-| 2. Localiser les 4 portraits | ⏳ à faire |
-| 3. Reconnaître les états (sain, blessé, Deep Wounds, à terre, porté, accroché, mort, sorti) | ⏳ à faire, **il manque des captures : porté, mort, sorti, Deep Wounds, crochets stades 1-3** |
-| 4. Fenêtre d'état en temps réel | ⏳ à faire |
+| 2. Localiser les 4 portraits et leurs zones (cercle, marques `!`, 2 barres) | ✅ fait en 1080p, vérifié à l'œil sur 35 captures. **À re-vérifier sur le vrai jeu** (demain) |
+| 3. Reconnaître les états (sain, blessé, Deep Wounds, à terre, porté, accroché, mort, sorti, Mori) | ✅ implémenté. 135/135 sur les captures étiquetées, **mais seuils réglés sur ces mêmes captures : à confirmer sur ta vidéo et sur le vrai jeu**. Peu d'exemples : Deep Wounds 1, sorti 2, Mori 4 |
+| 4. Fenêtre d'état en temps réel | ✅ 4 cartes (état, score, griffures, barre jaune, crochets lus) dans l'app ; lissage sur 3 images. Marques `!` : **à valider** |
 | 5. Overlay sur le jeu + timers | ⏳ plus tard |
 | 6. Interface de réglages / calibration | ⏳ plus tard |
 | 7. Distribution (GitHub Releases, signature) | ⏳ plus tard |
 
-Questions ouvertes : mode d'affichage de DBD utilisé pour les tests ; signification des crochets blancs `( )` autour de certains portraits ; signification des marques `II` / `!!` près des survivants accrochés.
+### Règles de lecture de l'écran (confirmées par l'utilisateur, 2026-11-24)
+
+- **Le nom ne sert pas de signal** : il devient rouge seulement quand l'action commence (sinon blanc), et certaines options du jeu désactivent les noms. Ne jamais s'appuyer dessus.
+- **Les barres sous le portrait sont le signal le plus fiable** (déduction exacte) :
+  - 2 barres rouges = les 2 étapes de crochet. La 1re se vide, puis la 2e commence à se vider quand le survivant passe au 2e crochet.
+  - 1 barre rouge = à terre (saignement).
+  - barre jaune = Deep Wounds (à confirmer avec plus d'exemples).
+- **`!` / `!!` près du nom** = nombre de fois que le survivant a été accroché.
+- **Crochets blancs `( )` autour d'un portrait** = l'Obsession. Ils **diminuent quand l'Obsession est poursuivie** (signal de poursuite, à exploiter plus tard).
+- Les icônes dans le cercle (crochet, rampant, porté) complètent les barres pour distinguer les états.
+- **Barre jaune = toujours Deep Wounds. Porté = pas de barre.**
+- **3e accrochage = mort du survivant.**
+- **Mort / sorti / Mori (vus sur les captures du 2026-11-24 soir)** : crâne qui crie = mort sur crochet ; crâne calme aux yeux rouges = Mori (d'après le classement de l'ancien dossier `Image/icone/{dead,mori}`) ; icône de porte avec personnage qui court = sorti.
+- **Cercle bleu à chaînes** et **cercle blanc épais** autour d'un portrait : effets causés par les pouvoirs du tueur. **Pas des états à détecter** ; à ignorer, sauf s'ils gênent la reconnaissance de l'icône (les modèles devront alors gérer ces apparences).
+- Les captures viennent d'une **vidéo plein écran** sur le PC client : plus floues que le vrai jeu (compression). Mode d'affichage du jeu : **sans bordure**. Le plein écran exclusif n'a donc pas été testé.
+
+Questions ouvertes : test de capture sur le vrai jeu (pas une vidéo).
+
+---
+
+## 2026-11-25 (etape 3 : lecture des etats)
+
+- Nouveau (Core) : `SurvivorState.cs` (etats), `TemplateLibrary.cs` + `templates.bin` (47 modeles d'icones embarques dans l'exe), `StateRecognizer.cs`, `StateSmoother.cs` (un etat n'est accepte qu'apres 3 images identiques).
+- Methode : (1) icone par comparaison de modeles sur l'image « blanc minimal » (min des canaux R,V,B : fonds rouges et cercles bleus disparaissent) → accroche, a terre, porte, mort, Mori, sorti ; (2) sinon barre jaune stricte (R>=220, V>=200, B<=90) → Deep Wounds ; (3) sinon rouge tres vif (R>=200, V<=70, B<=70) dans le cercle → blesse ; (4) sinon sain. Seuil d'icone 0,72.
+- Nouveau (Tools) : labels.txt (135 survivants etiquetes a l'oeil sur 35 captures), commandes `modeles` (regenere templates.bin), `evaluer` (leave-one-capture-out, matrice de confusion), `annoter`.
+- Resultats : 1re version 94 % ; apres reglage des seuils 135/135. Reglage fait sur ces memes captures, donc optimiste. Rouge vif : 0 sur les 53 sains, >= 0,2 % sur les 34 blesses (marge faible).
+- App : 4 cartes d'etat en direct ; fenetre placee a droite de l'ecran pour ne pas cacher les portraits. Verifie : exe lance au-dessus d'une capture plein ecran, etats lus correctement sur les 4 survivants (capture presente dans les modeles).
+- Limites : marques `!` peu fiables (des sains en lisent 2 ou 3) ; 1080p seulement ; Captures/ n'est pas dans git, donc `modeles` ne se relance qu'avec les captures en local.
+
+---
+
+## 2026-11-25 (etape 2 : zones des portraits)
+
+- Nouveau : `src/DbdAssistant.Core/PortraitLayout.cs` : calcule pour les 4 survivants les zones a lire (cercle/icone, marques `!`, barre 1, barre 2) a partir de la hauteur d'ecran. Reference mesuree en 1080p : centre x=128, 1er portrait y=457, pas 88 ; echelle proportionnelle a la hauteur, reglages fins `uiScale`, `offsetX`, `offsetY`.
+- Nouveau : `src/DbdAssistant.Tools` (outil dev, Windows) : dessine les zones sur chaque capture. `dotnet run --project src/DbdAssistant.Tools` lit `Captures/` et ecrit `Captures/annotees/`.
+- Verifie : 35 captures annotees, zones bien placees sur les 4 survivants (cercles sur les portraits, rectangles sur les barres et les `!`). Les captures viennent d'une video, pas du vrai jeu.
+- Non fait : lecture des couleurs/icones (etape 3).
 
 ---
 

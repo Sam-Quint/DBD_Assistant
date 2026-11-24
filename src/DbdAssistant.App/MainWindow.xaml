@@ -1,7 +1,7 @@
 ﻿<Window x:Class="DbdAssistant.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="DBD Assistant - Test de capture" Width="960" Height="620"
+        Title="DBD Assistant" Width="900" Height="640"
         Background="#1b1b1f" Foreground="#e8e8ea">
     <DockPanel Margin="12">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
@@ -9,6 +9,7 @@
             <TextBlock x:Name="InfoText" Margin="16,0,0,0" VerticalAlignment="Center" Text="Demarrage..."/>
         </StackPanel>
         <TextBlock x:Name="WarningText" DockPanel.Dock="Top" Foreground="#ffb454" Margin="0,0,0,8" TextWrapping="Wrap"/>
+        <UniformGrid x:Name="Cards" DockPanel.Dock="Top" Rows="1" Columns="4" Margin="0,0,0,10"/>
         <Image x:Name="Preview" Stretch="Uniform"/>
     </DockPanel>
 </Window>
