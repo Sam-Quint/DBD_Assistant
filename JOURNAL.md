@@ -5,6 +5,34 @@ Format : date — résumé — fichiers touchés.
 
 ---
 
+## Avancement (mis à jour à chaque modification)
+
+Objectif : app Windows en C# qui lit uniquement les pixels de l'écran (aucune injection, aucune lecture clavier/souris), et que l'utilisateur lance d'un double-clic, sans rien installer.
+
+| Étape | État |
+| --- | --- |
+| 1. Socle .NET + capture d'écran (DXGI) | ✅ fait, validé sur DBD (image non noire, 8-9 images/s) |
+| 1b. Exe autonome sans .NET à installer | ✅ généré (60 Mo), démarre sans SDK sur le PC dev ; **à tester sur le PC "Fix"** |
+| 2. Localiser les 4 portraits | ⏳ à faire |
+| 3. Reconnaître les états (sain, blessé, Deep Wounds, à terre, porté, accroché, mort, sorti) | ⏳ à faire, **il manque des captures : porté, mort, sorti, Deep Wounds, crochets stades 1-3** |
+| 4. Fenêtre d'état en temps réel | ⏳ à faire |
+| 5. Overlay sur le jeu + timers | ⏳ plus tard |
+| 6. Interface de réglages / calibration | ⏳ plus tard |
+| 7. Distribution (GitHub Releases, signature) | ⏳ plus tard |
+
+Questions ouvertes : mode d'affichage de DBD utilisé pour les tests ; signification des crochets blancs `( )` autour de certains portraits ; signification des marques `II` / `!!` près des survivants accrochés.
+
+---
+
+## 2026-11-24 (exe autonome)
+
+- `DbdAssistant.App.csproj` : publication en un seul `.exe` autonome (win-x64, runtime .NET embarqué, compressé) ; nom d'assemblage `DbdAssistant`.
+- Nouveau : `publier.bat` (dev uniquement) → `publish\DbdAssistant.exe`. `.gitignore` : ajout `publish/`.
+- Vérifié : l'exe (60 Mo) démarre et répond avec un `PATH` sans `dotnet`. Pas encore testé sur le PC "Fix".
+- Pour l'utilisateur : copier `DbdAssistant.exe` et double-cliquer. Aucun SDK ni runtime à installer (Windows 10/11 64 bits).
+
+---
+
 ## 2026-11-24 (etape 1 : socle .NET + capture)
 
 - Nouveau : `DbdAssistant.sln`, `src/DbdAssistant.Core` (bibliotheque, `ScreenCapturer.cs` : lecture des pixels de l'ecran principal via DXGI Desktop Duplication, Vortice 3.8.3), `src/DbdAssistant.App` (fenetre WPF : apercu en direct, images/s, alerte « image noire », bouton « Enregistrer une capture » vers `Captures/`).
