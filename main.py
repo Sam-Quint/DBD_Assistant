@@ -8,8 +8,14 @@ Architecture :
 
 Communication entre threads : GameState partagé (protégé par un verrou).
 """
+import os
+import sys
 import threading
 import time
+
+# Python embarqué (python\) : le dossier du projet n'est pas dans le chemin d'import par défaut
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from pynput import keyboard
 
 from vision.capture import ScreenCapture
