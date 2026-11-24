@@ -10,33 +10,33 @@ echo.
 cd /d "%~dp0"
 
 if exist "python\python.exe" (
-    echo [OK] Python portable déjà présent.
-    goto :install_deps
+    python\python.exe -c "import tkinter" 2>nul
+    if not errorlevel 1 (
+        echo [OK] Python portable déjà présent.
+        goto :install_deps
+    )
+    echo [INFO] Le Python portable existant n'a pas tkinter ^(necessaire a l'overlay^) : reinstallation.
+    rmdir /s /q python
 )
 
-echo [1/4] Téléchargement de Python 3.12 portable...
-set PY_URL=https://www.python.org/ftp/python/3.12.8/python-3.12.8-embed-amd64.zip
-set PY_ZIP=python_embed.zip
-
-powershell -Command "Invoke-WebRequest -Uri '%PY_URL%' -OutFile '%PY_ZIP%'" 2>nul
+echo [1/3] Téléchargement de Python 3.12 ^(installeur officiel python.org^)...
+set PY_URL=https://www.python.org/ftp/python/3.12.8/python-3.12.8-amd64.exe
+powershell -Command "Invoke-WebRequest -Uri '%PY_URL%' -OutFile 'python_installer.exe'" 2>nul
 if errorlevel 1 (
     echo [ERREUR] Téléchargement échoué. Vérifie ta connexion internet.
     pause & exit /b 1
 )
 
-echo [2/4] Extraction de Python...
-powershell -Command "Expand-Archive -Path '%PY_ZIP%' -DestinationPath 'python' -Force"
-del "%PY_ZIP%"
-
-echo [3/4] Configuration de Python portable...
-powershell -Command "(Get-Content 'python\python312._pth') -replace '#import site','import site' | Set-Content 'python\python312._pth'"
-
-powershell -Command "Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile 'get-pip.py'" 2>nul
-python\python.exe get-pip.py --quiet
-del "get-pip.py"
+echo [2/3] Installation de Python dans le dossier du projet ^(sans droits administrateur, ne modifie pas le PATH^)...
+start /wait "" python_installer.exe /quiet InstallAllUsers=0 "TargetDir=%~dp0python" Include_tcltk=1 Include_pip=1 Include_launcher=0 Include_test=0 Include_doc=0 Include_dev=0 Shortcuts=0 AssociateFiles=0 PrependPath=0 CompileAll=0
+del python_installer.exe
+if not exist "python\python.exe" (
+    echo [ERREUR] L'installation de Python a échoué.
+    pause & exit /b 1
+)
 
 :install_deps
-echo [4/4] Installation des librairies...
+echo [3/3] Installation des librairies...
 python\python.exe -m pip install -r requirements.txt --quiet
 
 echo.
