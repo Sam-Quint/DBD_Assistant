@@ -13,11 +13,11 @@ Objectif : app Windows en C# qui lit uniquement les pixels de l'écran (aucune i
 | --- | --- |
 | 1. Socle .NET + capture d'écran (DXGI) | ✅ fait, validé sur DBD (image non noire, 8-9 images/s) |
 | 1b. Exe autonome sans .NET à installer | ✅ généré (60 Mo), démarre sans SDK sur le PC dev ; **à tester sur le PC "Fix"** |
-| 2. Localiser les 4 portraits et leurs zones (cercle, marques `!`, 2 barres) | ✅ fait en 1080p, vérifié à l'œil sur 35 captures. **À re-vérifier sur le vrai jeu** (demain) |
-| 3. Reconnaître les états (sain, blessé, Deep Wounds, à terre, porté, accroché, mort, sorti, Mori) | ✅ implémenté et confirmé en vidéo (états justes sur 9 captures). 171/171 sur les captures étiquetées, **mais seuils réglés sur ces mêmes captures : à confirmer sur le vrai jeu**. Exemples : Deep Wounds 5, sorti 2, Mori 4 |
-| 4. Fenêtre d'état en temps réel | ✅ 4 cartes (état, score, griffures, barre jaune, crochets lus) dans l'app ; lissage sur 3 images. Marques `!` : **à valider** |
+| 2. Localiser les 4 portraits et leurs zones (cercle, marques `!`, 2 barres) | ✅ ancrage en bas à gauche + **calibration en 2 clics** (le vrai jeu est à ~87 % d'échelle) ; vérifié à l'œil sur le vrai jeu tueur (BUGS) et survivant (3eme/4eme). Interface 100 % et ~87 % vues, pas d'autres échelles |
+| 3. Reconnaître les états (sain, blessé, Deep Wounds, à terre, porté, accroché, mort, sorti, Mori) | ✅ **265/266** sur les captures étiquetées (vidéo + vrai jeu tueur + vrai jeu survivant), icônes indépendantes de l'échelle, griffures robustes (Peste, assombri), barre jaune robuste (briques jaunes). **Seuils réglés sur ces mêmes images : à confirmer sur de nouvelles captures** |
+| 4. Fenêtre d'état en temps réel | ✅ 4 cartes (état, score, griffures, barre jaune, crochets lus) ; lissage sur 3 images ; liste **HUD : Tueur / Survivant** (manuelle) ; bouton **Calibrer les portraits**. Marques `!` : côté survivant lecture par paires (imparfaite), côté tueur **non vérifiée sur le vrai jeu** |
 | 5. Overlay sur le jeu + timers | ⏳ plus tard |
-| 6. Interface de réglages / calibration | ⏳ plus tard |
+| 6. Interface de réglages / calibration | 🔶 calibration + choix du HUD faits ; reste le reste des réglages |
 | 7. Distribution (GitHub Releases, signature) | ⏳ plus tard |
 
 ### Règles de lecture de l'écran (confirmées par l'utilisateur, 2026-11-24)
@@ -40,18 +40,79 @@ Questions ouvertes : test de capture sur le vrai jeu (pas une vidéo).
 
 ---
 
-## Pour la prochaine session (a reprendre demain)
+## Pour la prochaine session
 
-1. **Captures du vrai jeu** (promises par l'utilisateur) : verifier le placement des zones (`annoter`) et les etats (`lire`, `evaluer`), surtout la position verticale des portraits et la barre jaune.
-2. Ajouter de nouvelles captures a `labels.txt` puis `modeles` + `evaluer` ; chercher des cas faux plutot que de regler sur les memes images.
-3. Marques `!` : encore sous-estimees sur fond rouge/blanc. Pistes : seuil relatif au fond local, forme du trait (hauteur/largeur), ou deduire le nombre de crochets d'apres les barres.
-4. Tester `publish\DbdAssistant.exe` sur le PC « Fix » (pas encore fait) et noter la reaction de l'antivirus / SmartScreen.
-5. Ensuite : overlay sur le jeu, timers (Coup Decisif, Fardeau, Wiggle...) calcules depuis les changements d'etat, ecran de reglages.
-6. **Rien n'est commite ni pousse depuis le commit « lecture des etats »** : les changements du jour (barre jaune par teinte, lissage des crochets, 9 captures etiquetees, templates.bin regenere) sont seulement en local.
+**Voir `Prochain_objectif.md`** (objectifs ordonnes, pieges connus, commandes). En resume : (1) tester l'exe en vrai (calibration, HUD), (2) fichier de verite terrain des crochets + score dans `evaluer`, (3) fiabiliser les marques `!` (survivant puis tueur), (4) detecter tueur/survivant automatiquement par un autre signal, (5) PC « Fix » / antivirus, (6) overlay + timers.
 
 Commandes utiles (depuis `DBD_Assistant/`) :
 - App : `dotnet run --project src/DbdAssistant.App` ; exe : `publier.bat`
-- Outils : `dotnet run --project src/DbdAssistant.Tools -- annoter | modeles | evaluer | lire <dossier> <prefixe> | lissage`
+- Outils : `dotnet run --project src/DbdAssistant.Tools -- annoter | modeles | evaluer | lire <dossier> <prefixe> | marques <dossier> <capture> | jaune <dossier> <capture> <survivant> | lissage`
+
+---
+
+## 2026-11-25 (commit de la session : calibration, HUD survivant, griffures, marques)
+
+Resume de tout ce qui a ete fait depuis « analyse des status survivant avec C# » (details dans les sections datees ci-dessous, de la plus recente a la plus ancienne) :
+
+- **Zones des portraits** : ancrage en bas a gauche (interface a ~87 %), calibration en 2 clics (`PortraitCalibration`, `CalibrationWindow`, bouton « Calibrer les portraits », `%APPDATA%\DbdAssistant\calibration.json`).
+- **HUD survivant** : `HudMode` (Tueur/Survivant) choisi dans l'app, memorise (`AppSettings`). Detection automatique par le rond sombre essayee puis abandonnee (non fiable : 5/9 survivant vs 19/51 tueur).
+- **Etats** : icones independantes de l'echelle, griffures = traits rouges fins en proportion (anti-Peste, anti-assombrissement), barre jaune plus robuste (teinte, longueur continue, epaisseur, lignes voisines), `templates.bin` 68 modeles. Evaluation **265/266**.
+- **Marques `!` survivant** : `MarkPairReader` (paire de traits a ~8 px, clair = subi / sombre = libre). Mode tueur inchange.
+- **Outils/donnees** : `labels.txt` +~95 survivants (vrai jeu tueur BUGS, survivant 3eme/4eme), noms de capture avec espaces, `calibration.txt` par dossier, commandes `marques`, `jaune`, `lire` enrichi, `evaluer` avec cas limites de griffures.
+- **A savoir** : `Captures/` (pseudos) n'est pas dans git ; les seuils sont regles sur les memes images (a confirmer sur de nouvelles captures). Prochaines etapes : `Prochain_objectif.md`.
+
+---
+
+## 2026-11-25 (nuit, suite 2 : lecture des marques `!` par paires, HUD survivant)
+
+- Nouveau `MarkPairReader` (Core), utilise **uniquement en mode survivant** (le mode tueur garde `CountMarks`). Principe : le HUD survivant dessine toujours 2 emplacements voisins (~8 px, blanc = crochet subi, sombre = libre). On cherche une **paire** de traits fins (clair ou sombre) de meme hauteur/position verticale (+/- 4 px) a ~8 px d'ecart, ne pouvant commencer que juste apres le rond d'action (x ≈ 0..16) ou juste apres l'icone de statut (x ≈ 32..50), puis on compte les traits clairs. Repli : un trait blanc net seul (contraste >= 40) a ces memes positions, sauf si une paire de traits sombres plus nette existe (deux emplacements libres).
+- `StateRecognizer.Read(..., HudMode mode)` ; l'app et l'outil passent le mode. Outil : `marques <dossier> <capture>` affiche les traits detectes par portrait.
+- Verifie sur les cas connus a l'oeil : barry allen 1 (3eme 2, 3), Hedera 1 (3eme 4, 5, 6), OrcMalade 1 (4eme 5), El goblino 2 / Orc 1 (3eme 1, 9), El goblino 0 / Orc 2 / Bebopidop 2 (4eme 10, nom en gras = joueur), Bebopidop 1 (4eme 7, 8). Faux bords du decor (manteau, briques) ecartes.
+- **Encore imparfait** : El goblino lu 1 au lieu de 0 sur 4eme 3, 5, 6 (eclaboussures de sang pres des marques) ; Glitzerhiippo (4eme 10, `!!` pales sur fond clair) lue 1 au lieu de 2 ; OrcMalade (4eme 1, 2) lue 0, `!` non visible. Pas de verite terrain automatisee pour les marques : verification a l'oeil seulement.
+- Etats : toujours 265/266. Exe regenere dans `publish/`. Rien commite.
+
+---
+
+## 2026-11-25 (nuit, suite : 10 nouvelles captures survivant `4eme (n)`)
+
+- Captures du vrai jeu cote survivant (`Captures/SURVIVANT/4eme (1..10).png`). Les 9 precedentes ont ete renommees `3eme (1..9)` par l'utilisateur : `labels.txt` mis a jour (correspondance verifiee par la taille des fichiers) et le lecteur d'etiquettes accepte maintenant les noms avec espaces.
+- **Etats** : les 40 nouveaux survivants sont lus justes (y compris les « A terre » alors que leurs icones n'etaient pas dans les modeles). Evaluation globale 265/266 ; reste `234217.3`.
+- **Faux Deep Wounds sur sol de briques jaunes** (4 cas, captures 4 a 6) : la « barre jaune » etait une rangee de briques. Corrections de `HasYellowBar` : (1) moyenne de plusieurs lignes autour (a 6..12 px), (2) epaisseur <= ~8,5 px, (3) **longueur continue** : mesure sur 8 vraies barres, au moins une des deux est quasi pleine (>= 87 % de jaune, suite >= 41/47 px) ; les briques font <= 20 px. Une barre qui se vide est acceptee si elle reste collee au bord gauche de la 1re zone. Deep Wounds toujours 7/7.
+- **Marques `!`** : un trait doit etre une suite verticale continue (>= 40 % de la hauteur) et fine (<= 6 px), 1 colonne creuse tolere ; zone survivant (99, -26, 69, 26) pour ne pas toucher l'anneau dore du rond d'action. Verifie : barry allen 1, Hedera 1, El goblino (capture 10, marques noires) 0.
+- **Limite connue** : un bord clair et fin du decor dans la zone (ex. le manteau du tueur sur la capture 5, OrcMalade lue 2 au lieu de 1) peut compter comme un `!`.
+- `templates.bin` : 68 modeles. Outil : `jaune <dossier> <capture> <survivant>` affiche les statistiques de la barre jaune.
+- Exe regenere dans `publish/`. Rien commite.
+
+---
+
+## 2026-11-25 (nuit : HUD survivant, griffures, la Peste)
+
+- Nouvelles captures `Captures/SURVIVANT` (9, partie cote survivant contre la Peste, interface 100 %). Problemes constates : (1) crochets `!` jamais lus, (2) faux « Blesse » a cause des eclaboussures de l'infection, (3) vraies griffures non lues quand le portrait est assombri.
+- **HUD survivant** : a droite du portrait il y a un rond d'action sombre (~35 px, centre ≈ +76 px), parfois une icone de statut (rond rouge barre), puis les marques. Il y a toujours **2 emplacements de crochet : blanc = crochet subi, sombre = libre**. Zone des marques large cote survivant (`MarksSurvivor` : dx 96, w 72) contre dx 57 cote tueur. `PortraitLayout.Compute(..., HudMode mode)`.
+- **Detection auto tueur/survivant par le rond sombre : essayee, NON fiable, abandonnee.** Mesure sur 9 captures survivant et ~50 captures tueur : survivant >= 2 ronds : 5/9 ; tueur >= 2 ronds : 19/51 (les scenes sombres imitent un rond). Un detecteur qui bascule a tort casserait la lecture. A la place : liste deroulante **« HUD : Tueur / Survivant »** dans l'app, memorisee dans `%APPDATA%\DbdAssistant\settings.json` (`AppSettings`, `HudMode`). Piste si on veut de l'auto plus tard : un signal different du rond (par ex. la forme du cadre du portrait, qui varie selon la version du jeu).
+- **Griffures** (`StateRecognizer.ScratchFraction`) : rouge en proportion (R>=110, V et B <= 40 % de R) au lieu de R>=200/V,B<=70 ; seuls les **traits fins** comptent (rouge moins son ouverture 3x3), donc les taches larges (eclaboussures de la Peste, arc rouge de poursuite) disparaissent. Seuil `ScratchThreshold` 0,002 -> 0,0115 (nouvelle echelle). Marge faible : sains <= 0,021 (1 cas) puis 0,011 ; blesses >= 0,012 puis 0,021.
+- **Marques `!`** : seuil de blanc relatif au fond (mediane + 60, entre 95 et 165) : le `!` du HUD survivant ne depasse pas ~125. Verifie sur les cas connus (barry allen 1, Hedera 1, El goblino accroche 2, OrcMalade 1).
+- **Etiquettes** : +55 survivants dans `labels.txt` (9 SURVIVANT, 4 BUGS verifies a l'oeil). `templates.bin` regenere : 64 modeles (anneau d'infection, vrai jeu). Les captures `BUGS` ont un `calibration.txt` (110,545,772) ; un dossier dont le nom contient SURVIVANT est lu en mode survivant ; `evaluer` affiche les cas limites de griffures.
+- **Resultats** : evaluation 218/226 avant la correction des griffures (8 erreurs : 4 griffures ternes, 2 eclaboussures Peste, 2 arcs rouges) -> **225/226**. Reste : `234217.3` (ancienne video, sain lu blesse, 0,021). Reglage fait sur ces memes captures : a confirmer sur de nouvelles.
+- Correction d'une erreur de lecture du soir : l'icone du joueur « a terre » de la capture 003510 etait en fait « Porte » (meme icone vue pendant un portage sur la 211743).
+- Non verifie : le HUD survivant a d'autres echelles d'interface (seul 100 % vu) ; les marques grises de la 212218 (Tinkitinkiee, Hedera) lues 2 sans certitude.
+- Exe regenere dans `publish/`. Rien commite.
+
+---
+
+## 2026-11-25 (soir : zones decalees sur le vrai jeu + calibration)
+
+- Constat (7 captures `Captures/BUGS`, vrai jeu) : l'app ne lisait ni griffures ni crochets car les zones tombaient a cote des portraits. Mesure : portraits a x≈110, y≈545/622/698/772 (pas 76), contre 128 / 457 + 88i dans le code (mesure sur la video a 100 %). L'echelle d'interface du joueur est ≈ 0,87 et l'interface est **ancree en bas a gauche** : la distance au bas de l'ecran est proportionnelle a l'echelle (1080 - 623·k pour le 1er portrait). L'ancien Python marchait mieux car il avait une calibration par clics (`Detecteur_griffures/detecteur.py`).
+- `PortraitLayout.Compute` : ancrage en bas (identique a avant en 1080p a 100 %), nouveau parametre `calibration`. Zones des barres : dy 23 -> 25, h 10 -> 12 (barres mesurees ~28 px sous le centre).
+- Nouveau `PortraitCalibration` (Core) : x, y du 1er et du 4e portrait en fraction de la hauteur d'ecran, enregistre dans `%APPDATA%\DbdAssistant\calibration.json`.
+- Nouveau bouton **« Calibrer les portraits »** (`CalibrationWindow`) : capture figee en plein ecran, clic au centre du 1er puis du 4e portrait, apercu des 4 cercles/barres, Entree = valider, clic = recommencer, Echap = annuler. L'app affiche un avertissement tant qu'elle n'est pas calibree.
+- Reconnaissance d'icones independante de l'echelle : `StateRecognizer` reechantillonne (bilineaire) le cercle a la taille des modeles (k = diametre/64). Sans cela, les icones accroche/a terre d'une interface a 87 % ne correspondaient pas aux modeles.
+- Barre jaune assouplie (saturation >= 0,45, teinte 32-76, luminosite >= 130) : sur fond violet la barre vaut ~(187,148,87), refusee avant.
+- Outil : variable `CALIB="x,y1,y4"` (pixels de la capture) pour `annoter | lire | evaluer | modeles` ; `lire` affiche aussi score d'icone et griffures.
+- Resultats, avec calibration simulee `CALIB=110,545,772` sur les 7 captures BUGS : zones centrees sur les 28 portraits (verifie a l'oeil), griffures lues, 2 barres jaunes (KS2) lues, 2 accroches lus. Anciennes captures : toujours 171/171.
+- **Encore faux sur BUGS** : (a) joueur a terre « QuemTela » (003510) lu « Porte » 0,85 ; (b) Kate (003613) a terre, icone « A terre » a 0,61 < seuil 0,72, lue « Blesse » ; (c) Nova (003438) saine avec un arc rouge autour du portrait lue « Blesse » (griffures 0,052 : l'arc rouge est compte comme griffures) ; (d) marques `!` toujours peu fiables.
+- A faire pour (a)(b) : etiqueter ces captures du vrai jeu dans `labels.txt` (avec `CALIB`) et regenerer `templates.bin`. Pour (c) : restreindre la zone de griffures au visage (a valider sur plus de cas).
+- Exe regenere dans `publish/`. Rien commite.
 
 ---
 

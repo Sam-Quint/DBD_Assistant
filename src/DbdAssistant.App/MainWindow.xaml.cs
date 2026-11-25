@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,6 +21,8 @@ public partial class MainWindow : Window
     private readonly Border[] _cards = new Border[4];
 
     private Frame? _frame;
+    private PortraitCalibration? _calibration = PortraitCalibration.Load();
+    private HudMode _mode = AppSettings.Load().Mode;
     private WriteableBitmap? _bitmap;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(100) }; // 10 FPS
     private readonly Stopwatch _clock = Stopwatch.StartNew();
@@ -35,6 +37,7 @@ public partial class MainWindow : Window
         Left = Math.Max(0, SystemParameters.PrimaryScreenWidth - Width);
         Top = 40;
 
+        ModeBox.SelectedIndex = _mode == HudMode.Survivor ? 1 : 0;
         BuildCards();
         try
         {
@@ -101,10 +104,10 @@ public partial class MainWindow : Window
         }
         _bitmap.WritePixels(new Int32Rect(0, 0, frame.Width, frame.Height), frame.Bgra, frame.Width * 4, 0);
 
-        var zones = PortraitLayout.Compute(frame.Height);
+        var zones = PortraitLayout.Compute(frame.Height, _calibration, _mode);
         for (int i = 0; i < 4; i++)
         {
-            var r = _recognizer!.Read(frame, zones[i]);
+            var r = _recognizer!.Read(frame, zones[i], null, _mode);
             var state = _smoothers[i].Update(r.State);
             int hooks = _hookSmoothers[i].Update(r.HookMarks);
             var color = ColorOf(state);
@@ -126,8 +129,32 @@ public partial class MainWindow : Window
             InfoText.Text = $"Ecran principal : {frame.Width}x{frame.Height}  -  {fps:0} images/s";
             WarningText.Text = frame.IsBlack()
                 ? "Image noire : le jeu n'est peut-etre pas capturable (plein ecran exclusif ?). Essaie le mode fenetre sans bordure."
-                : (frame.Height != 1080 ? "Resolution non validee : les positions ne sont verifiees qu'en 1920x1080." : "");
+                : (_calibration == null ? "Portraits non calibres : lance le jeu, puis clique sur « Calibrer les portraits » (2 clics)." : "");
         }
+    }
+
+    private void ModeBox_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        var mode = ModeBox.SelectedIndex == 1 ? HudMode.Survivor : HudMode.Killer;
+        if (mode == _mode) return;
+        _mode = mode;
+        new AppSettings(mode).Save();
+    }
+
+    private void CalibrateButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_frame == null) return;
+        _timer.Stop();
+        try
+        {
+            var win = new CalibrationWindow(_frame) { Owner = this };
+            if (win.ShowDialog() == true && win.Result != null)
+            {
+                _calibration = win.Result;
+                _calibration.Save();
+            }
+        }
+        finally { _timer.Start(); }
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)

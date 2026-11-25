@@ -27,26 +27,49 @@ public static class PortraitLayout
 
     // Zones relatives au centre du portrait (1080p).
     private const double DiscSize = 64;
+    /// <summary>Diametre du cercle a l'echelle de reference (celle des modeles d'icones).</summary>
+    public const double DiscRef = DiscSize;
     private static readonly (double dx, double dy, double w, double h) Marks = (57, -26, 24, 26);
-    private static readonly (double dx, double dy, double w, double h) Bar1 = (57, 23, 47, 10);
-    private static readonly (double dx, double dy, double w, double h) Bar2 = (110, 23, 47, 10);
+    // HUD survivant : rond d action puis icone de statut eventuelle, puis les marques : zone large apres le rond.
+    private static readonly (double dx, double dy, double w, double h) MarksSurvivor = (99, -26, 69, 26);
+    private static readonly (double dx, double dy, double w, double h) Bar1 = (57, 25, 47, 12);
+    private static readonly (double dx, double dy, double w, double h) Bar2 = (110, 25, 47, 12);
 
     /// <param name="screenHeight">Hauteur de l'ecran en pixels.</param>
-    /// <param name="uiScale">Echelle d'interface choisie dans les options du jeu (1.0 = 100 %).</param>
+    /// <param name="calibration">Position mesuree par la calibration (2 clics). Prioritaire sur le calcul par defaut.</param>
+    /// <param name="uiScale">Echelle d'interface choisie dans les options du jeu (1.0 = 100 %). Ignoree si calibre.</param>
     /// <param name="offsetX">Decalage horizontal fin, en pixels ecran.</param>
     /// <param name="offsetY">Decalage vertical fin, en pixels ecran.</param>
-    public static IReadOnlyList<SurvivorZones> Compute(int screenHeight, double uiScale = 1.0, int offsetX = 0, int offsetY = 0)
+    public static IReadOnlyList<SurvivorZones> Compute(int screenHeight, PortraitCalibration? calibration = null, HudMode mode = HudMode.Killer,
+        double uiScale = 1.0, int offsetX = 0, int offsetY = 0)
     {
-        double k = (double)screenHeight / RefHeight * uiScale;
+        double k, centerX, firstY, step;
+        if (calibration != null)
+        {
+            centerX = calibration.XFrac * screenHeight;
+            firstY = calibration.Y1Frac * screenHeight;
+            step = calibration.StepFrac * screenHeight;
+            k = step / StepY; // echelle d'interface deduite de l'espacement mesure
+        }
+        else
+        {
+            // L'interface est ancree en bas a gauche : la distance au BAS de l'ecran est proportionnelle a l'echelle.
+            k = (double)screenHeight / RefHeight * uiScale;
+            centerX = CenterX * k;
+            step = StepY * k;
+            firstY = screenHeight - (RefHeight - FirstY) * k;
+        }
+
+        var marks = mode == HudMode.Survivor ? MarksSurvivor : Marks;
         var list = new List<SurvivorZones>(4);
         for (int i = 0; i < 4; i++)
         {
-            double cx = CenterX * k + offsetX;
-            double cy = (FirstY + i * StepY) * k + offsetY;
+            double cx = centerX + offsetX;
+            double cy = firstY + i * step + offsetY;
             list.Add(new SurvivorZones(
                 i,
                 Make(cx, cy, -DiscSize / 2 * k, -DiscSize / 2 * k, DiscSize * k, DiscSize * k),
-                Make(cx, cy, Marks.dx * k, Marks.dy * k, Marks.w * k, Marks.h * k),
+                Make(cx, cy, marks.dx * k, marks.dy * k, marks.w * k, marks.h * k),
                 Make(cx, cy, Bar1.dx * k, Bar1.dy * k, Bar1.w * k, Bar1.h * k),
                 Make(cx, cy, Bar2.dx * k, Bar2.dy * k, Bar2.w * k, Bar2.h * k)));
         }

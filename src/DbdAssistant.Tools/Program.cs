@@ -17,6 +17,8 @@ switch (cmd)
     case "modeles": Modeles(capDir); break;
     case "evaluer": Evaluer(capDir); break;
     case "lissage": TestLissage(); break;
+    case "marques": { var fl = FindCapture(capDir, args[2])!; var fr = LoadFrame(fl); var zs = Zones(fr, fl, out _); for (int q = 0; q < 4; q++) { int n = MarkPairReader.Count(fr, zs[q].Marks, out var dbg); Console.WriteLine($"slot {q}: {n}  {dbg}"); } break; }
+    case "jaune": { var fl = FindCapture(capDir, args[2])!; var fr = LoadFrame(fl); var zz = Zones(fr, fl, out _)[int.Parse(args[3])]; Console.WriteLine("bar1 " + StateRecognizer.DebugYellowRows(fr, zz.Bar1)); Console.WriteLine("bar2 " + StateRecognizer.DebugYellowRows(fr, zz.Bar2)); break; }
     case "lire": Lire(capDir, args.Length > 2 ? args[2] : ""); break;
     default: Console.WriteLine("Commandes : annoter | modeles | evaluer"); break;
 }
@@ -40,8 +42,10 @@ static List<(string capture, int survivor, SurvivorState state)> LoadLabels(stri
     foreach (var line in File.ReadAllLines(path))
     {
         if (line.StartsWith('#') || string.IsNullOrWhiteSpace(line)) continue;
-        var p = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        list.Add((p[0], int.Parse(p[1]), SurvivorStates.FromCode(p[2][0])));
+        // Le nom de capture peut contenir des espaces ("3eme (2)") : on lit le code et le numero depuis la fin.
+        var p = line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        string name = string.Join(' ', p[..^2]);
+        list.Add((name, int.Parse(p[^2]), SurvivorStates.FromCode(p[^1][0])));
     }
     return list;
 }
@@ -57,7 +61,7 @@ static void Annoter(string inDir, string outDir)
     {
         using var bmp = new Bitmap(file);
         using var g = Graphics.FromImage(bmp);
-        foreach (var s in PortraitLayout.Compute(bmp.Height))
+        foreach (var s in Zones(LoadFrame(file), file, out _))
         {
             g.DrawEllipse(penDisc, s.Disc.X, s.Disc.Y, s.Disc.W, s.Disc.H);
             g.DrawRectangle(penMarks, s.Marks.X, s.Marks.Y, s.Marks.W, s.Marks.H);
@@ -75,10 +79,10 @@ static void Modeles(string capDir)
     var items = new List<Template>();
     foreach (var group in labels.GroupBy(l => l.capture))
     {
-        string file = Path.Combine(capDir, group.Key + ".png");
-        if (!File.Exists(file)) { Console.WriteLine($"Capture absente : {file}"); continue; }
+        string? file = FindCapture(capDir, group.Key);
+        if (file == null) { Console.WriteLine($"Capture absente : {group.Key}"); continue; }
         var frame = LoadFrame(file);
-        var zones = PortraitLayout.Compute(frame.Height);
+        var zones = Zones(frame, file, out _);
         foreach (var (cap, s, state) in group)
         {
             if (!SurvivorStates.IsIconState(state)) continue; // visages et barres : pas de modele
@@ -100,15 +104,18 @@ static void Evaluer(string capDir)
     var errors = new List<string>();
     int ok = 0, total = 0;
     var detail = new List<(SurvivorState truth, SurvivorReading r)>();
+    var scratchRows = new List<(SurvivorState truth, double scratch, string id)>();
 
     foreach (var group in labels.GroupBy(l => l.capture))
     {
-        var frame = LoadFrame(Path.Combine(capDir, group.Key + ".png"));
-        var zones = PortraitLayout.Compute(frame.Height);
+        string file = FindCapture(capDir, group.Key) ?? throw new FileNotFoundException(group.Key);
+        var frame = LoadFrame(file);
+        var zones = Zones(frame, file, out var zmode);
         foreach (var (cap, s, truth) in group)
         {
-            var r = rec.Read(frame, zones[s], excludeSource: cap); // jamais ses propres modeles
+            var r = rec.Read(frame, zones[s], excludeSource: cap, mode: zmode); // jamais ses propres modeles
             detail.Add((truth, r));
+            scratchRows.Add((truth, r.Scratch, cap[^6..] + "." + s));
             total++;
             if (r.State == truth) ok++;
             else errors.Add($"  {cap[^6..]}.{s}  attendu {SurvivorStates.Label(truth),-11} lu {SurvivorStates.Label(r.State),-11} icone={SurvivorStates.Label(r.BestIcon)} {r.IconScore:0.00}  griffures={r.Scratch:0.000}  jaune={r.YellowBar}");
@@ -130,6 +137,12 @@ static void Evaluer(string capDir)
     Console.WriteLine("\nMarques ! lues (nombre de crochets) : repartition par etat attendu");
     foreach (var g in detail.GroupBy(d => d.truth).OrderBy(g => g.Key))
         Console.WriteLine($"  {SurvivorStates.Label(g.Key),-12} " + string.Join("  ", g.GroupBy(d => d.r.HookMarks).OrderBy(x => x.Key).Select(x => $"{x.Key}:{x.Count()}")));
+
+    // Aide au reglage du seuil de griffures : cas limites des deux cotes (seulement les etats lus par le visage)
+    var faces = scratchRows.Where(x => x.truth is SurvivorState.Healthy or SurvivorState.Injured).ToList();
+    Console.WriteLine("\nGriffures, cas limites : plus hauts SAINS / plus bas BLESSES");
+    Console.WriteLine("  sains   : " + string.Join("  ", faces.Where(x => x.truth == SurvivorState.Healthy).OrderByDescending(x => x.scratch).Take(8).Select(x => $"{x.id}={x.scratch:0.000}")));
+    Console.WriteLine("  blesses : " + string.Join("  ", faces.Where(x => x.truth == SurvivorState.Injured).OrderBy(x => x.scratch).Take(8).Select(x => $"{x.id}={x.scratch:0.000}")));
 
     // Aide au reglage des seuils
     Console.WriteLine("\nScores d'icone (meilleur modele) : min/max par etat attendu");
@@ -163,11 +176,30 @@ static void Lire(string capDir, string prefix)
     var lib = TemplateLibrary.Load(File.OpenRead(Path.Combine("src", "DbdAssistant.Core", "templates.bin")));
     var rec = new StateRecognizer(lib);
     if (Environment.GetEnvironmentVariable("MARK_BRIGHT") is string mb) rec.MarkBrightness = int.Parse(mb);
-    foreach (var file in Directory.GetFiles(capDir, prefix + "*.png").OrderBy(f => f, StringComparer.Ordinal))
+    foreach (var file in Directory.GetFiles(capDir, prefix + "*.png", SearchOption.AllDirectories).OrderBy(f => f, StringComparer.Ordinal))
     {
         var frame = LoadFrame(file);
-        var zones = PortraitLayout.Compute(frame.Height);
-        var parts = zones.Select(z => rec.Read(frame, z)).Select(r => $"{SurvivorStates.Label(r.State)}{(r.YellowBar ? "[jaune]" : "")}/!{r.HookMarks}");
-        Console.WriteLine($"{Path.GetFileNameWithoutExtension(file)[^6..]}  " + string.Join("  |  ", parts));
+        var zones = Zones(frame, file, out var zmode);
+        var parts = zones.Select(z => rec.Read(frame, z, null, zmode)).Select(r => $"{SurvivorStates.Label(r.State)}{(r.YellowBar ? "[jaune]" : "")}/!{r.HookMarks}({SurvivorStates.Label(r.BestIcon)} {r.IconScore:0.00} gr{r.Scratch:0.000})");
+        Console.WriteLine($"{Path.GetFileNameWithoutExtension(file)}  " + string.Join("  |  ", parts));
     }
+}
+
+// Cherche une capture par son nom dans le dossier et ses sous-dossiers (BUGS, SURVIVANT...).
+static string? FindCapture(string dir, string name) =>
+    Directory.GetFiles(dir, name + ".png", SearchOption.AllDirectories).FirstOrDefault();
+
+// Zones d'une capture. Calibration : variable CALIB="x,y1,y4" (pixels), sinon fichier calibration.txt du dossier
+// de la capture (meme format), sinon calcul par defaut. Mode : survivant si la capture est dans un dossier SURVIVANT.
+static IReadOnlyList<SurvivorZones> Zones(Frame frame, string file, out HudMode mode)
+{
+    string? text = Environment.GetEnvironmentVariable("CALIB");
+    string calFile = Path.Combine(Path.GetDirectoryName(file) ?? ".", "calibration.txt");
+    if (text == null && File.Exists(calFile)) text = File.ReadAllText(calFile).Trim();
+    var p = text?.Split(',');
+    PortraitCalibration? cal = p is { Length: 3 }
+        ? PortraitCalibration.FromPixels(double.Parse(p[0]), double.Parse(p[1]), double.Parse(p[2]), frame.Height)
+        : null;
+    mode = file.Contains("SURVIVANT", StringComparison.OrdinalIgnoreCase) ? HudMode.Survivor : HudMode.Killer;
+    return PortraitLayout.Compute(frame.Height, cal, mode);
 }
