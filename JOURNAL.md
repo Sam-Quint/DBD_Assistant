@@ -40,6 +40,15 @@ Questions ouvertes : test de capture sur le vrai jeu (pas une vidéo).
 
 ---
 
+## 2026-11-26 (renommage des captures, `Crochet.txt`, overlay)
+
+- **Captures renommees** : `tueur 01..44`, `bug 1..7` (`SURVIVANT/` inchange). `labels.txt`, `templates.bin` regeneres ; correspondance dans `Captures/renommage.txt`. `evaluer` toujours 265/266.
+- **`Captures/Crochet.txt`** : verite terrain des crochets, preremplie avec la lecture de l'outil (a corriger a la main ; seules `tueur 32/35/41` sont confirmees a l'oeil). Le score de crochets dans `evaluer` n'est pas encore branche. Constat : le HUD tueur a aussi 2 emplacements de crochet (blanc = subi, sombre = libre).
+- **Tests reels** (utilisateur) : lecture OK sur plusieurs parties ; l'exe fonctionne sur le PC « Fix ».
+- **Overlay** (`OverlayWindow.cs`, case « Overlay » dans l'app) : fenetre WPF transparente plein ecran, click-through, exclue de la capture (`SetWindowDisplayAffinity`, Windows 10 2004+). Anneau colore par etat autour de chaque portrait, 2 pastilles de crochets, emplacement reserve sous le portrait pour les futurs timers. **Pas encore verifie visuellement en jeu.**
+
+---
+
 ## Pour la prochaine session
 
 **Voir `Prochain_objectif.md`** (objectifs ordonnes, pieges connus, commandes). En resume : (1) tester l'exe en vrai (calibration, HUD), (2) fichier de verite terrain des crochets + score dans `evaluer`, (3) fiabiliser les marques `!` (survivant puis tueur), (4) detecter tueur/survivant automatiquement par un autre signal, (5) PC « Fix » / antivirus, (6) overlay + timers.

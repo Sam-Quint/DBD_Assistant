@@ -115,10 +115,10 @@ static void Evaluer(string capDir)
         {
             var r = rec.Read(frame, zones[s], excludeSource: cap, mode: zmode); // jamais ses propres modeles
             detail.Add((truth, r));
-            scratchRows.Add((truth, r.Scratch, cap[^6..] + "." + s));
+            scratchRows.Add((truth, r.Scratch, (cap.Length > 6 ? cap[^6..] : cap) + "." + s));
             total++;
             if (r.State == truth) ok++;
-            else errors.Add($"  {cap[^6..]}.{s}  attendu {SurvivorStates.Label(truth),-11} lu {SurvivorStates.Label(r.State),-11} icone={SurvivorStates.Label(r.BestIcon)} {r.IconScore:0.00}  griffures={r.Scratch:0.000}  jaune={r.YellowBar}");
+            else errors.Add($"  {(cap.Length > 6 ? cap[^6..] : cap)}.{s}  attendu {SurvivorStates.Label(truth),-11} lu {SurvivorStates.Label(r.State),-11} icone={SurvivorStates.Label(r.BestIcon)} {r.IconScore:0.00}  griffures={r.Scratch:0.000}  jaune={r.YellowBar}");
             confusion[(truth, r.State)] = confusion.GetValueOrDefault((truth, r.State)) + 1;
         }
     }

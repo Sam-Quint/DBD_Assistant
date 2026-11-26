@@ -11,6 +11,7 @@
                 <ComboBoxItem Content="Tueur"/>
                 <ComboBoxItem Content="Survivant"/>
             </ComboBox>
+            <CheckBox x:Name="OverlayBox" Content="Overlay" IsChecked="True" Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#e8e8ea" Checked="OverlayBox_Changed" Unchecked="OverlayBox_Changed" ToolTip="Affiche les etats par-dessus le jeu (mode fenetre sans bordure)."/>
             <Button x:Name="CalibrateButton" Content="Calibrer les portraits" Padding="12,6" Margin="16,0,0,0" Click="CalibrateButton_Click"/>
             <TextBlock x:Name="InfoText" Margin="16,0,0,0" VerticalAlignment="Center" Text="Demarrage..."/>
         </StackPanel>

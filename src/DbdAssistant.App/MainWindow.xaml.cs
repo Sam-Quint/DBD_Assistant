@@ -27,6 +27,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(100) }; // 10 FPS
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private int _frames;
+    private OverlayWindow? _overlay;
 
     public MainWindow()
     {
@@ -54,7 +55,9 @@ public partial class MainWindow : Window
         }
         _timer.Tick += (_, _) => Tick();
         _timer.Start();
-        Closed += (_, _) => _capturer?.Dispose();
+        _overlay = new OverlayWindow();
+        _overlay.Show();
+        Closed += (_, _) => { _overlay?.Close(); _capturer?.Dispose(); };
     }
 
     private void BuildCards()
@@ -96,6 +99,8 @@ public partial class MainWindow : Window
         var frame = _capturer!.Capture(0);
         if (frame == null) return;
         _frame = frame;
+        if (_overlay != null && (double.IsNaN(_overlay.Width) || Math.Abs(_overlay.Width * VisualTreeHelper.GetDpi(_overlay).DpiScaleX - frame.Width) > 1))
+            _overlay.Fit(frame.Width, frame.Height);
 
         if (_bitmap == null || _bitmap.PixelWidth != frame.Width || _bitmap.PixelHeight != frame.Height)
         {
@@ -114,6 +119,7 @@ public partial class MainWindow : Window
             _stateText[i].Text = SurvivorStates.Label(state);
             _stateText[i].Foreground = new SolidColorBrush(color);
             _cards[i].BorderBrush = new SolidColorBrush(color);
+            if (OverlayBox.IsChecked == true) _overlay?.Update(i, zones[i], state, hooks, color);
             _detailText[i].Text =
                 $"icone : {SurvivorStates.Label(r.BestIcon)} ({r.IconScore:0.00})\n" +
                 $"crochets : {hooks}  (brut {r.HookMarks}, a valider)\n" +
@@ -129,7 +135,9 @@ public partial class MainWindow : Window
             InfoText.Text = $"Ecran principal : {frame.Width}x{frame.Height}  -  {fps:0} images/s";
             WarningText.Text = frame.IsBlack()
                 ? "Image noire : le jeu n'est peut-etre pas capturable (plein ecran exclusif ?). Essaie le mode fenetre sans bordure."
-                : (_calibration == null ? "Portraits non calibres : lance le jeu, puis clique sur « Calibrer les portraits » (2 clics)." : "");
+                : (_overlay is { ExcludedFromCapture: false } && OverlayBox.IsChecked == true
+                    ? "Overlay : Windows n'a pas pu l'exclure de la capture (Windows 10 mai 2020 ou plus requis). Decoche « Overlay » si les lectures se degradent."
+                : _calibration == null ? "Portraits non calibres : lance le jeu, puis clique sur « Calibrer les portraits » (2 clics)." : "");
         }
     }
 
@@ -141,10 +149,17 @@ public partial class MainWindow : Window
         new AppSettings(mode).Save();
     }
 
+    private void OverlayBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_overlay == null) return;
+        if (OverlayBox.IsChecked == true) _overlay.Show(); else _overlay.Hide();
+    }
+
     private void CalibrateButton_Click(object sender, RoutedEventArgs e)
     {
         if (_frame == null) return;
         _timer.Stop();
+        _overlay?.Hide();
         try
         {
             var win = new CalibrationWindow(_frame) { Owner = this };
@@ -154,7 +169,7 @@ public partial class MainWindow : Window
                 _calibration.Save();
             }
         }
-        finally { _timer.Start(); }
+        finally { _timer.Start(); if (OverlayBox.IsChecked == true) _overlay?.Show(); }
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)

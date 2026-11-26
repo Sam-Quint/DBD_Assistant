@@ -1,176 +1,176 @@
 # Etiquettes verifiees a l'oeil. Format : nom_capture survivant(0-3) code
 # H sain  I blesse  W deep wounds  D a terre  C porte  K accroche  X mort  M mori  E sorti
-capture_20261124_232227 0 H
-capture_20261124_232227 1 K
-capture_20261124_232227 2 I
-capture_20261124_232227 3 D
-capture_20261124_232621 0 H
-capture_20261124_232621 1 K
-capture_20261124_232621 2 I
-capture_20261124_232621 3 D
-capture_20261124_232634 0 K
-capture_20261124_232634 1 I
-capture_20261124_232634 3 K
-capture_20261124_232641 0 C
-capture_20261124_232641 1 X
-capture_20261124_232641 2 X
-capture_20261124_232641 3 H
-capture_20261124_232646 0 I
-capture_20261124_232646 1 K
-capture_20261124_232646 2 I
-capture_20261124_232646 3 H
-capture_20261124_232648 0 I
-capture_20261124_232648 1 K
-capture_20261124_232648 2 I
-capture_20261124_232648 3 H
-capture_20261124_232652 0 K
-capture_20261124_232652 1 H
-capture_20261124_232652 2 H
-capture_20261124_232652 3 H
-capture_20261124_232657 0 I
-capture_20261124_232657 1 I
-capture_20261124_232657 2 C
-capture_20261124_232657 3 H
-capture_20261124_232701 0 D
-capture_20261124_232701 1 I
-capture_20261124_232701 2 I
-capture_20261124_232701 3 I
-capture_20261124_232709 0 H
-capture_20261124_232709 1 H
-capture_20261124_232709 2 H
-capture_20261124_232709 3 H
-capture_20261124_234127 0 H
-capture_20261124_234127 1 H
-capture_20261124_234127 2 H
-capture_20261124_234127 3 H
-capture_20261124_234140 0 H
-capture_20261124_234140 1 I
-capture_20261124_234140 2 H
-capture_20261124_234140 3 H
-capture_20261124_234149 0 H
-capture_20261124_234149 1 D
-capture_20261124_234149 2 H
-capture_20261124_234149 3 H
-capture_20261124_234151 0 H
-capture_20261124_234151 1 C
-capture_20261124_234151 2 H
-capture_20261124_234151 3 H
-capture_20261124_234156 0 H
-capture_20261124_234156 1 K
-capture_20261124_234156 2 H
-capture_20261124_234156 3 H
-capture_20261124_234204 0 H
-capture_20261124_234204 1 W
-capture_20261124_234204 2 H
-capture_20261124_234204 3 I
-capture_20261124_234209 0 K
-capture_20261124_234209 1 I
-capture_20261124_234209 2 H
-capture_20261124_234209 3 H
-capture_20261124_234213 0 H
-capture_20261124_234213 1 I
-capture_20261124_234213 2 K
-capture_20261124_234213 3 H
-capture_20261124_234217 0 K
-capture_20261124_234217 1 I
-capture_20261124_234217 2 I
-capture_20261124_234217 3 H
-capture_20261124_234222 0 I
-capture_20261124_234222 1 I
-capture_20261124_234222 2 D
-capture_20261124_234222 3 H
-capture_20261124_234223 0 I
-capture_20261124_234223 1 I
-capture_20261124_234223 2 D
-capture_20261124_234223 3 H
-capture_20261124_234226 0 I
-capture_20261124_234226 1 I
-capture_20261124_234226 2 C
-capture_20261124_234226 3 H
-capture_20261124_234233 0 H
-capture_20261124_234233 1 I
-capture_20261124_234233 2 K
-capture_20261124_234233 3 H
-capture_20261124_235407 0 H
-capture_20261124_235407 1 I
-capture_20261124_235407 2 H
-capture_20261124_235407 3 H
-capture_20261124_235428 0 H
-capture_20261124_235428 1 K
-capture_20261124_235428 2 H
-capture_20261124_235428 3 H
-capture_20261124_235442 0 I
-capture_20261124_235442 2 K
-capture_20261124_235450 0 I
-capture_20261124_235450 1 K
-capture_20261124_235450 2 H
-capture_20261124_235450 3 I
-capture_20261124_235455 0 C
-capture_20261124_235455 2 M
-capture_20261124_235455 3 I
-capture_20261124_235501 0 K
-capture_20261124_235501 2 M
-capture_20261124_235501 3 H
-capture_20261124_235507 0 I
-capture_20261124_235507 1 M
-capture_20261124_235507 2 M
-capture_20261124_235507 3 H
-capture_20261124_235643 0 I
-capture_20261124_235643 1 H
-capture_20261124_235643 2 I
-capture_20261124_235643 3 X
-capture_20261124_235657 0 C
-capture_20261124_235657 1 H
-capture_20261124_235657 2 K
-capture_20261124_235657 3 X
-capture_20261124_235659 0 C
-capture_20261124_235659 1 E
-capture_20261124_235659 2 K
-capture_20261124_235659 3 X
-capture_20261124_235700 0 C
-capture_20261124_235700 1 E
-capture_20261124_235700 2 K
-capture_20261124_235700 3 X
-capture_20261124_235709 0 I
-capture_20261124_235709 1 X
-capture_20261124_235709 2 H
-capture_20261124_235709 3 K
-capture_20261125_001732 0 I
-capture_20261125_001732 1 I
-capture_20261125_001732 2 W
-capture_20261125_001732 3 I
-capture_20261125_001735 0 I
-capture_20261125_001735 1 I
-capture_20261125_001735 2 I
-capture_20261125_001735 3 I
-capture_20261125_001750 0 I
-capture_20261125_001750 1 I
-capture_20261125_001750 2 K
-capture_20261125_001750 3 H
-capture_20261125_001752 0 D
-capture_20261125_001752 1 I
-capture_20261125_001752 2 K
-capture_20261125_001752 3 H
-capture_20261125_001806 0 I
-capture_20261125_001806 1 I
-capture_20261125_001806 2 W
-capture_20261125_001806 3 I
-capture_20261125_001809 0 I
-capture_20261125_001809 1 I
-capture_20261125_001809 2 W
-capture_20261125_001809 3 I
-capture_20261125_001818 0 H
-capture_20261125_001818 1 I
-capture_20261125_001818 2 I
-capture_20261125_001818 3 H
-capture_20261125_001821 0 D
-capture_20261125_001821 1 I
-capture_20261125_001821 2 W
-capture_20261125_001821 3 H
-capture_20261125_001824 0 D
-capture_20261125_001824 1 I
-capture_20261125_001824 2 D
-capture_20261125_001824 3 H
+tueur 01 0 H
+tueur 01 1 K
+tueur 01 2 I
+tueur 01 3 D
+tueur 02 0 H
+tueur 02 1 K
+tueur 02 2 I
+tueur 02 3 D
+tueur 03 0 K
+tueur 03 1 I
+tueur 03 3 K
+tueur 04 0 C
+tueur 04 1 X
+tueur 04 2 X
+tueur 04 3 H
+tueur 05 0 I
+tueur 05 1 K
+tueur 05 2 I
+tueur 05 3 H
+tueur 06 0 I
+tueur 06 1 K
+tueur 06 2 I
+tueur 06 3 H
+tueur 07 0 K
+tueur 07 1 H
+tueur 07 2 H
+tueur 07 3 H
+tueur 08 0 I
+tueur 08 1 I
+tueur 08 2 C
+tueur 08 3 H
+tueur 09 0 D
+tueur 09 1 I
+tueur 09 2 I
+tueur 09 3 I
+tueur 10 0 H
+tueur 10 1 H
+tueur 10 2 H
+tueur 10 3 H
+tueur 11 0 H
+tueur 11 1 H
+tueur 11 2 H
+tueur 11 3 H
+tueur 12 0 H
+tueur 12 1 I
+tueur 12 2 H
+tueur 12 3 H
+tueur 13 0 H
+tueur 13 1 D
+tueur 13 2 H
+tueur 13 3 H
+tueur 14 0 H
+tueur 14 1 C
+tueur 14 2 H
+tueur 14 3 H
+tueur 15 0 H
+tueur 15 1 K
+tueur 15 2 H
+tueur 15 3 H
+tueur 16 0 H
+tueur 16 1 W
+tueur 16 2 H
+tueur 16 3 I
+tueur 17 0 K
+tueur 17 1 I
+tueur 17 2 H
+tueur 17 3 H
+tueur 18 0 H
+tueur 18 1 I
+tueur 18 2 K
+tueur 18 3 H
+tueur 19 0 K
+tueur 19 1 I
+tueur 19 2 I
+tueur 19 3 H
+tueur 20 0 I
+tueur 20 1 I
+tueur 20 2 D
+tueur 20 3 H
+tueur 21 0 I
+tueur 21 1 I
+tueur 21 2 D
+tueur 21 3 H
+tueur 22 0 I
+tueur 22 1 I
+tueur 22 2 C
+tueur 22 3 H
+tueur 23 0 H
+tueur 23 1 I
+tueur 23 2 K
+tueur 23 3 H
+tueur 24 0 H
+tueur 24 1 I
+tueur 24 2 H
+tueur 24 3 H
+tueur 25 0 H
+tueur 25 1 K
+tueur 25 2 H
+tueur 25 3 H
+tueur 26 0 I
+tueur 26 2 K
+tueur 27 0 I
+tueur 27 1 K
+tueur 27 2 H
+tueur 27 3 I
+tueur 28 0 C
+tueur 28 2 M
+tueur 28 3 I
+tueur 29 0 K
+tueur 29 2 M
+tueur 29 3 H
+tueur 30 0 I
+tueur 30 1 M
+tueur 30 2 M
+tueur 30 3 H
+tueur 31 0 I
+tueur 31 1 H
+tueur 31 2 I
+tueur 31 3 X
+tueur 32 0 C
+tueur 32 1 H
+tueur 32 2 K
+tueur 32 3 X
+tueur 33 0 C
+tueur 33 1 E
+tueur 33 2 K
+tueur 33 3 X
+tueur 34 0 C
+tueur 34 1 E
+tueur 34 2 K
+tueur 34 3 X
+tueur 35 0 I
+tueur 35 1 X
+tueur 35 2 H
+tueur 35 3 K
+tueur 36 0 I
+tueur 36 1 I
+tueur 36 2 W
+tueur 36 3 I
+tueur 37 0 I
+tueur 37 1 I
+tueur 37 2 I
+tueur 37 3 I
+tueur 38 0 I
+tueur 38 1 I
+tueur 38 2 K
+tueur 38 3 H
+tueur 39 0 D
+tueur 39 1 I
+tueur 39 2 K
+tueur 39 3 H
+tueur 40 0 I
+tueur 40 1 I
+tueur 40 2 W
+tueur 40 3 I
+tueur 41 0 I
+tueur 41 1 I
+tueur 41 2 W
+tueur 41 3 I
+tueur 42 0 H
+tueur 42 1 I
+tueur 42 2 I
+tueur 42 3 H
+tueur 43 0 D
+tueur 43 1 I
+tueur 43 2 W
+tueur 43 3 H
+tueur 44 0 D
+tueur 44 1 I
+tueur 44 2 D
+tueur 44 3 H
 # --- 2026-11-25 soir : HUD survivant (Captures/SURVIVANT, partie contre la Peste) et vrai jeu tueur (Captures/BUGS, calibre) ---
 # 211534 : OrcMalade et Tinkitinkiee ont seulement les eclaboussures de l'infection (rouge+jaune), pas de griffures : sains.
 3eme (2) 0 H
@@ -209,25 +209,25 @@ capture_20261125_001824 3 H
 3eme (1) 1 E
 3eme (1) 2 H
 3eme (1) 3 H
-capture_20261125_003438 0 W
-capture_20261125_003438 1 K
-capture_20261125_003438 2 H
-capture_20261125_003438 3 H
-capture_20261125_003449 0 W
-capture_20261125_003449 1 I
-capture_20261125_003449 2 H
-capture_20261125_003449 3 H
-capture_20261125_003510 0 I
-capture_20261125_003510 1 C
-capture_20261125_003510 2 H
-capture_20261125_003510 3 I
-capture_20261125_003620 0 H
-capture_20261125_003620 1 H
-capture_20261125_003620 2 K
-capture_20261125_003620 3 H
-capture_20261125_003613 0 H
-capture_20261125_003613 2 H
-capture_20261125_003613 3 I
+bug 1 0 W
+bug 1 1 K
+bug 1 2 H
+bug 1 3 H
+bug 2 0 W
+bug 2 1 I
+bug 2 2 H
+bug 2 3 H
+bug 5 0 I
+bug 5 1 C
+bug 5 2 H
+bug 5 3 I
+bug 7 0 H
+bug 7 1 H
+bug 7 2 K
+bug 7 3 H
+bug 6 0 H
+bug 6 2 H
+bug 6 3 I
 # --- 2026-11-25 nuit : 4eme (n) = captures du vrai jeu cote survivant (HUD survivant, interface 100 %) ---
 4eme (1) 0 H
 4eme (1) 1 I
